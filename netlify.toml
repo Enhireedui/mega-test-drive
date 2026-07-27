@@ -1,0 +1,21 @@
+# Netlify build configuration.
+#
+# The Next.js runtime (@netlify/plugin-nextjs) is what makes Server Components,
+# Server Actions and `revalidate` work here — it maps them onto Netlify
+# Functions and Netlify's cache. Netlify installs it automatically for Next.js
+# sites; it is declared explicitly so the dependency is visible in the repo.
+#
+# Environment variables are NOT set here — they belong in
+# Site configuration ▸ Environment variables, so the webhook URL never
+# lands in version control:
+#   GOOGLE_SHEETS_WEBHOOK_URL   (secret, server-only)
+#   NEXT_PUBLIC_SITE_URL        (e.g. https://megatestdrive.netlify.app)
+
+[build]
+  command = "npm run build"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
