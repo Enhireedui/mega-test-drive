@@ -31,27 +31,28 @@ UI flow — the server action short-circuits to success **in development only** 
 the form and success modal can be tested. In production a missing webhook
 returns a user-facing "system unavailable" message rather than a silent success.
 
-| Script                 | Purpose                          |
-| ---------------------- | -------------------------------- |
-| `npm run dev`          | Dev server on :3000              |
-| `npm run dev:system-ca`| Dev server behind a TLS proxy    |
-| `npm run build`        | Production build                 |
-| `npm start`            | Serve the production build       |
-| `npm run typecheck`    | `tsc --noEmit`                   |
-| `npm run lint`         | ESLint (flat config, Next rules) |
+Requires **Node ≥ 22.15** (see `engines`).
 
-### If the form reports a connection failure locally
+| Script              | Purpose                          |
+| ------------------- | -------------------------------- |
+| `npm run dev`       | Dev server on :3000              |
+| `npm run build`     | Production build                 |
+| `npm start`         | Serve the production build       |
+| `npm run typecheck` | `tsc --noEmit`                   |
+| `npm run lint`      | ESLint (flat config, Next rules) |
+
+### Why `dev` runs Node with `--use-system-ca`
 
 On a network that intercepts TLS (corporate proxy, some antivirus suites), the
 server action's call to Apps Script fails with
-`UNABLE_TO_VERIFY_LEAF_SIGNATURE` — Node ships its own CA bundle and ignores the
+`UNABLE_TO_VERIFY_LEAF_SIGNATURE`: Node ships its own CA bundle and ignores the
 Windows/macOS certificate store, so it does not trust the interception
-certificate. The page correctly reports a connection problem; nothing is wrong
-with the code, and hosted environments are unaffected.
+certificate. Registrations then fail locally while working perfectly in
+production, which is a confusing way to lose an afternoon.
 
-Use `npm run dev:system-ca` (Node ≥ 22.15) to make Node trust the system store.
-It is deliberately a separate script: `--use-system-ca` is unknown to older Node
-versions, so putting it in `build` would break the deploy.
+`--use-system-ca` makes Node trust the OS store, so `npm run dev` behaves like
+the deployed site. It is only on `dev` — `build` and `start` stay plain, so the
+flag can never affect a deploy.
 
 ---
 

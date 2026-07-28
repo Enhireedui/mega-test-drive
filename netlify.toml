@@ -15,7 +15,8 @@
   command = "npm run build"
 
 [build.environment]
-  NODE_VERSION = "20"
+  # Matches the `engines` floor in package.json.
+  NODE_VERSION = "22"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

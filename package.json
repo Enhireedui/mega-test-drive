@@ -2,9 +2,11 @@
   "name": "sain-motors-mega-test-drive-5",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": ">=22.15"
+  },
   "scripts": {
-    "dev": "next dev",
-    "dev:system-ca": "node --use-system-ca ./node_modules/next/dist/bin/next dev",
+    "dev": "node --use-system-ca ./node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",

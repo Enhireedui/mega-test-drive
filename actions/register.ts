@@ -148,7 +148,13 @@ export async function registerAttendee(
     }
   } catch (error) {
     if (isTimeoutError(error)) return { status: "error", code: "TIMEOUT" };
-    if (error instanceof TypeError) return { status: "error", code: "NETWORK" };
+    /*
+     * A `fetch` TypeError here is the server failing to reach Apps Script — a
+     * bad URL, DNS, or a TLS chain it does not trust. It is never the visitor's
+     * connection, so it must not be reported as one; NETWORK is reserved for
+     * the browser telling us it is offline.
+     */
+    if (error instanceof TypeError) return { status: "error", code: "UPSTREAM" };
     return { status: "error", code: "UNKNOWN" };
   }
 
