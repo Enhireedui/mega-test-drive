@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { EventInfo } from "@/components/EventInfo";
+import { EventLogistics } from "@/components/EventLogistics";
 import { Footer } from "@/components/Footer";
 import { PageHeader } from "@/components/PageHeader";
 import { RegistrationCard } from "@/components/RegistrationCard";
@@ -23,7 +24,7 @@ function EventStructuredData() {
     "@context": "https://schema.org",
     "@type": "Event",
     name: eventConfig.title,
-    description: eventConfig.intro.body[0] ?? eventConfig.intro.lead,
+    description: eventConfig.intro.body[0] ?? eventConfig.title,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     ...(startDate ? { startDate } : {}),
@@ -71,9 +72,14 @@ export default async function Page() {
       <main className="mx-auto flex w-full max-w-[46rem] flex-col items-center px-5 pb-14 pt-10 sm:px-8 sm:pb-16 sm:pt-14">
         <PageHeader />
 
-        {/* Registration first — reading second. */}
-        <div className="mt-8 w-full sm:mt-9">
+        {/* The incentive above hands off to the form here. */}
+        <div className="mt-11 w-full sm:mt-13">
           <RegistrationCard availability={slots} />
+        </div>
+
+        {/* When and where, closing the form rather than delaying it. */}
+        <div className="mt-11 w-full sm:mt-12">
+          <EventLogistics />
         </div>
 
         <Reveal delay={0.05} className="mt-16 w-full sm:mt-20">

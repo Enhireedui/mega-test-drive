@@ -1,19 +1,26 @@
 import Image from "next/image";
 
-import { eventConfig, eventDateRangeLabel, eventHoursLabel } from "@/lib/config";
+import { Incentive } from "@/components/Incentive";
+import { eventConfig } from "@/lib/config";
 import lockup from "@/public/brand/mega-test-drive-5.png";
 import sainLogo from "@/public/brand/sain-motors.png";
 
 /**
- * Deliberately short: the distributor mark, the event lockup, and when and
- * where. Nothing else stands between arriving and the first form field.
+ * The hero, reduced to three beats on one centred axis:
+ *
+ *   endorsement  →  event mark  →  the reason to register  →  form
+ *
+ * When and where now sit under the form (EventLogistics); the hero carries only
+ * identity and motive, so the first field arrives sooner.
+ *
+ * Spacing keeps three deliberate tiers: 20–24px inside the identity pair,
+ * 36–44px for the one real break, 44–52px handing off to the form.
  *
  * The lockup animates by transform only (never opacity), so it paints
  * immediately and cannot delay Largest Contentful Paint.
  */
 export function PageHeader() {
-  const { venue, distributor, title, dates } = eventConfig;
-  const weekday = dates[0]?.weekday ?? "";
+  const { distributor, title } = eventConfig;
 
   return (
     <header className="flex w-full flex-col items-center text-center">
@@ -21,19 +28,20 @@ export function PageHeader() {
         src={sainLogo}
         alt={distributor}
         priority
-        sizes="130px"
-        className="animate-rise h-6 w-[5.75rem] sm:h-7 sm:w-[6.6875rem]"
+        sizes="120px"
+        className="animate-rise h-[1.375rem] w-[5.25rem] opacity-80 sm:h-6 sm:w-[5.75rem]"
       />
 
+      {/* The anchor. Nothing else in the hero competes with it. */}
       <h1
-        className="animate-settle relative mt-5 w-full max-w-[11.5rem] sm:mt-6 sm:max-w-[13.5rem]"
+        className="animate-settle relative mt-5 w-full max-w-[14rem] sm:mt-6 sm:max-w-[16.5rem] lg:max-w-[18rem]"
         style={{ animationDelay: "0.06s" }}
       >
         <Image
           src={lockup}
           alt={title}
           priority
-          sizes="(max-width: 640px) 184px, 216px"
+          sizes="(max-width: 640px) 224px, (max-width: 1024px) 264px, 288px"
           className="h-auto w-full"
         />
         <span className="sr-only"> — {distributor}-ийн туршилтын жолоодлогын өдөрлөг</span>
@@ -43,23 +51,9 @@ export function PageHeader() {
         </span>
       </h1>
 
-      {/* Stacked on a phone, one line from sm up — never a ragged wrap. */}
-      <p
-        className="animate-rise mt-6 flex flex-col items-center gap-1.5 rounded-[1.25rem] border border-brand/25 bg-brand/[0.07] px-5 py-2.5 text-[0.5625rem] font-semibold uppercase leading-none tracking-[0.18em] text-white/75 sm:mt-7 sm:flex-row sm:gap-x-2.5 sm:rounded-full sm:py-2 sm:text-[0.625rem] sm:tracking-[0.22em]"
-        style={{ animationDelay: "0.14s" }}
-      >
-        <span className="tabular-nums">
-          {eventDateRangeLabel()} · {weekday}
-        </span>
-        <span aria-hidden="true" className="hidden text-white/30 sm:inline">
-          ·
-        </span>
-        <span className="tabular-nums">{eventHoursLabel()}</span>
-        <span aria-hidden="true" className="hidden text-white/30 sm:inline">
-          ·
-        </span>
-        <span>{venue.name}</span>
-      </p>
+      <div className="animate-rise mt-9 sm:mt-11" style={{ animationDelay: "0.16s" }}>
+        <Incentive />
+      </div>
     </header>
   );
 }

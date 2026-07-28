@@ -14,6 +14,7 @@
   --color-violet-deep: #3b1e6e;
   --color-magenta-dusk: #b03a73;
   --color-ember: #e4622f;
+  --color-ember-hi: #f4a24b;
 
   /* --- Action (the only red on the page) ------------------------------- */
   --color-brand: #e20a17;
@@ -152,14 +153,24 @@
   color: transparent;
 }
 
-/* White cooling into the brand red — used once, on the lead line. */
-@utility text-flare {
+/* Top-lit warm metal — the poster's golden hour, applied to type. Warm enough
+   to read as a deliberate colour rather than as off-white, but the darkest stop
+   still clears 12:1 on the night ground, so a three-line sentence never goes
+   dim at the bottom of each line. */
+@utility text-dusk {
+  background-image: linear-gradient(180deg, #ffffff 0%, #ffefd8 44%, #f2c79a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The figure that does the persuading: the same light, concentrated. */
+@utility text-ember-metal {
   background-image: linear-gradient(
-    100deg,
-    #ffffff 0%,
-    #ffffff 42%,
-    #ffb3b8 72%,
-    var(--color-brand-hi) 100%
+    180deg,
+    #ffe2bd 0%,
+    var(--color-ember-hi) 52%,
+    var(--color-ember) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;

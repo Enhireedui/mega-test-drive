@@ -11,7 +11,13 @@ import { Button } from "@/components/Button";
 import { ChoiceGroup, type Choice } from "@/components/ChoiceGroup";
 import { Input } from "@/components/Input";
 import { SuccessModal, type RegistrationSummary } from "@/components/SuccessModal";
-import { eventConfig, findEventDate, slotKey, slotRangeLabel } from "@/lib/config";
+import {
+  eventConfig,
+  eventDateRangeLabel,
+  findEventDate,
+  slotKey,
+  slotRangeLabel,
+} from "@/lib/config";
 import { DURATION, EASE_ENTER } from "@/lib/motion";
 import {
   formatPhoneInput,
@@ -243,7 +249,14 @@ export function RegistrationCard({ availability }: RegistrationCardProps) {
 
             <div aria-hidden="true" className="hairline-h my-7 h-px sm:my-8" />
 
-            <Step index={2} title="Бүртгүүлэх цаг" titleId={timeStepId}>
+            {/* The day is stated here because it no longer sits above the
+                form — nobody should pick an hour without it. */}
+            <Step
+              index={2}
+              title="Бүртгүүлэх цаг"
+              hint={`${eventDateRangeLabel()} · ${eventConfig.dates[0]?.weekday ?? ""}`}
+              titleId={timeStepId}
+            >
               <ChoiceGroup
                 labelledBy={timeStepId}
                 value={visitTime}

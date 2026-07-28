@@ -44,10 +44,19 @@ export interface EventStats {
   readonly luckyDrawGuests: number;
 }
 
-/** The only prose on the page. */
+/**
+ * The reason to register, set as the bridge between the title block and the
+ * form. Split so the numeral can carry the emphasis on its own.
+ */
+export interface EventIncentiveCopy {
+  readonly before: string;
+  /** The figure that does the persuading. */
+  readonly highlight: string;
+  readonly after: string;
+}
+
+/** The invitation, below the form. */
 export interface EventIntroCopy {
-  /** Single opening line, set large. */
-  readonly lead: string;
   /** Supporting paragraphs, in order. */
   readonly body: readonly string[];
 }
@@ -71,6 +80,7 @@ export interface EventConfig {
   readonly contact: EventContact;
   readonly brands: readonly string[];
   readonly stats: EventStats;
+  readonly incentive: EventIncentiveCopy;
   readonly intro: EventIntroCopy;
 }
 

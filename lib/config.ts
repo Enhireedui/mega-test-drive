@@ -68,8 +68,14 @@ export const eventConfig: EventConfig = {
     luckyDrawGuests: 50,
   },
 
+  // Split so "50" can be set as the graphic accent without repeating itself.
+  incentive: {
+    before: "Бүртгүүлсэн эхний",
+    highlight: "50",
+    after: "зочин азын хүрд эргүүлэх эрхтэй",
+  },
+
   intro: {
-    lead: "Бүртгүүлсэн эхний 50 зочин азын хүрд эргүүлэх эрхтэй!",
     body: [
       "11 брэндийн 20 гаруй шинэ загварыг туршин жолоодож, энэ сарын хамгийн том MEGA TEST DRIVE 5 өдөрлөгт оролцоорой.",
       "Та гэр бүл, найз нөхөдтэйгөө хүрэлцэн ирж, өөрт таалагдсан автомашинаа туршиж нэг өдрийг сонирхолтой өнгөрүүлэхийг урьж байна.",
