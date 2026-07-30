@@ -26,7 +26,7 @@ const LABEL_FLOATED =
 const LABEL_RESTING =
   "peer-[:placeholder-shown:not(:focus)]:top-1/2 " +
   "peer-[:placeholder-shown:not(:focus)]:-translate-y-1/2 " +
-  "peer-[:placeholder-shown:not(:focus)]:text-[0.9375rem] " +
+  "peer-[:placeholder-shown:not(:focus)]:text-base " +
   "peer-[:placeholder-shown:not(:focus)]:font-normal " +
   "peer-[:placeholder-shown:not(:focus)]:normal-case " +
   "peer-[:placeholder-shown:not(:focus)]:tracking-normal " +
@@ -59,7 +59,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={invalid || undefined}
           aria-describedby={invalid ? errorId : undefined}
           className={[
-            "peer h-16 w-full bg-transparent pb-2.5 pt-7 text-[0.9375rem] text-white/92 outline-none",
+            /* 16px, not 15: Safari on iOS zooms the page in on focus for any
+               field under 16px and never zooms back out, which would leave
+               someone pinching the page back into place mid-registration. */
+            "peer h-16 w-full bg-transparent pb-2.5 pt-7 text-base text-white/92 outline-none",
             "caret-brand-hi placeholder:text-transparent disabled:cursor-not-allowed",
             prefix ? "pl-[4.25rem]" : "pl-4",
             Icon ? "pr-12" : "pr-4",
@@ -85,7 +88,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {prefix ? (
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-2.5 left-4 text-[0.9375rem] tabular-nums text-white/55"
+            className="pointer-events-none absolute bottom-2.5 left-4 text-base tabular-nums text-white/55"
           >
             {prefix}
           </span>
