@@ -6,39 +6,22 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Button } from "@/components/Button";
 import { DURATION, EASE_ENTER } from "@/lib/motion";
 
-export interface RegistrationSummary {
-  name: string;
-  /** Already grouped for reading, e.g. "9988 7766". */
-  phone: string;
-  dateLabel: string;
-  weekday: string;
-  /** Full range, e.g. "11:00 – 14:00". */
-  timeLabel: string;
-}
-
 interface SuccessModalProps {
   open: boolean;
   onClose: () => void;
-  summary: RegistrationSummary | null;
 }
 
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-baseline justify-between gap-5 border-b border-white/[0.07] px-4 py-3.5 last:border-b-0">
-      <dt className="shrink-0 text-[0.75rem] leading-none text-white/55">{label}</dt>
-      <dd className="min-w-0 break-words text-right font-display text-[0.9375rem] font-semibold leading-tight tracking-tight tabular-nums text-white/92">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-export function SuccessModal({ open, onClose, summary }: SuccessModalProps) {
+/**
+ * The confirmation: a tick, one sentence and the way out.
+ *
+ * It does not read back what was just typed — the visitor typed it, and rows of
+ * their own data are the least useful thing to hand them at this moment.
+ */
+export function SuccessModal({ open, onClose }: SuccessModalProps) {
   const rawId = useId();
   const titleId = `success-${rawId}-title`;
-  const descriptionId = `success-${rawId}-description`;
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -97,7 +80,7 @@ export function SuccessModal({ open, onClose, summary }: SuccessModalProps) {
 
   return (
     <AnimatePresence>
-      {open && summary ? (
+      {open ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-4 pt-14 sm:items-center sm:p-6">
           <motion.div
             aria-hidden="true"
@@ -114,12 +97,11 @@ export function SuccessModal({ open, onClose, summary }: SuccessModalProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            aria-describedby={descriptionId}
             initial={{ opacity: 0, y: 26, scale: 0.975 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 14, scale: 0.985, transition: { duration: DURATION.micro } }}
             transition={{ duration: DURATION.compose, ease: EASE_ENTER }}
-            className="glass relative max-h-[calc(100svh-4.5rem)] w-full max-w-[26rem] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-white/12 px-6 pb-6 pt-8 text-center edge-lit sm:px-7 sm:pb-7 sm:pt-9"
+            className="glass relative max-h-[calc(100svh-4.5rem)] w-full max-w-[23rem] overflow-y-auto overflow-x-hidden overscroll-contain rounded-[1.75rem] border border-white/12 px-6 pb-6 pt-9 text-center edge-lit sm:px-7 sm:pb-7 sm:pt-10"
           >
             {/* Warm bloom, from behind and above — the page's only light source. */}
             <span
@@ -164,27 +146,10 @@ export function SuccessModal({ open, onClose, summary }: SuccessModalProps) {
 
             <h2
               id={titleId}
-              className="mt-5 text-balance font-display text-[1.25rem] font-semibold leading-[1.35] tracking-[-0.01em] text-chrome sm:text-[1.375rem]"
+              className="mx-auto mt-6 max-w-[16rem] text-balance font-display text-[1.25rem] font-semibold leading-[1.35] tracking-[-0.01em] text-chrome"
             >
-              Таны бүртгэл амжилттай хүлээн авлаа.
+              Амжилттай бүртгэгдлээ.
             </h2>
-
-            <p
-              id={descriptionId}
-              className="mx-auto mt-2.5 max-w-[19rem] text-[0.9375rem] leading-relaxed text-white/60"
-            >
-              Удахгүй бид тантай холбогдох болно.
-            </p>
-
-            <dl className="mt-6 overflow-hidden rounded-2xl border border-white/[0.09] bg-white/[0.025] text-left">
-              <SummaryRow label="Нэр" value={summary.name} />
-              <SummaryRow label="Утас" value={`+976 ${summary.phone}`} />
-              <SummaryRow
-                label="Огноо"
-                value={`${summary.dateLabel} · ${summary.weekday}`}
-              />
-              <SummaryRow label="Цаг" value={summary.timeLabel} />
-            </dl>
 
             <Button
               ref={closeButtonRef}
@@ -192,7 +157,7 @@ export function SuccessModal({ open, onClose, summary }: SuccessModalProps) {
               size="md"
               fullWidth
               onClick={onClose}
-              className="mt-5"
+              className="mt-8"
             >
               Хаах
             </Button>

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 
 import { EventInfo } from "@/components/EventInfo";
-import { EventLogistics } from "@/components/EventLogistics";
 import { Footer } from "@/components/Footer";
 import { PageHeader } from "@/components/PageHeader";
 import { RegistrationCard } from "@/components/RegistrationCard";
@@ -72,14 +71,11 @@ export default async function Page() {
       <main className="mx-auto flex w-full max-w-[46rem] flex-col items-center px-5 pb-14 pt-10 sm:px-8 sm:pb-16 sm:pt-14">
         <PageHeader />
 
-        {/* The incentive above hands off to the form here. */}
+        {/* The incentive above hands off to the button here. The day now sits
+            as a micro-label above the time cards inside the form, so there is
+            no separate logistics block to repeat it. */}
         <div className="mt-11 w-full sm:mt-13">
           <RegistrationCard availability={slots} />
-        </div>
-
-        {/* When and where, closing the form rather than delaying it. */}
-        <div className="mt-11 w-full sm:mt-12">
-          <EventLogistics />
         </div>
 
         <Reveal delay={0.05} className="mt-16 w-full sm:mt-20">
