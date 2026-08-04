@@ -1,10 +1,12 @@
 import { Hero } from "@/components/sections/Hero";
 import { SiteFooter } from "@/components/sections/SiteFooter";
-import { getAvailability } from "@/lib/availability";
 import { eventConfig, eventStartTimestamps } from "@/lib/config";
 
-/** Availability is re-read on the server every 30s; the shell stays static. */
-export const revalidate = 30;
+/*
+ * Fully static. Every word on this page comes from lib/config.ts, and with no
+ * capacity to report there is nothing left to re-read at runtime — so there is
+ * no `revalidate` and no upstream request between a visitor and the first paint.
+ */
 
 function EventStructuredData() {
   const [firstStart] = eventStartTimestamps();
@@ -67,9 +69,7 @@ function EventStructuredData() {
  * photography, no availability counter, no FAQ. A visitor arrives, reads two
  * facts, and registers.
  */
-export default async function Page() {
-  const availability = await getAvailability();
-
+export default function Page() {
   return (
     <>
       <EventStructuredData />
@@ -82,7 +82,7 @@ export default async function Page() {
       </a>
 
       <main>
-        <Hero availability={availability} />
+        <Hero />
       </main>
 
       <SiteFooter />

@@ -1,19 +1,10 @@
 /**
  * Domain types for the MEGA TEST DRIVE 6 registration flow.
- * Shared by the client form, the server action and the availability reader.
+ * Shared by the client form and the server action.
+ *
+ * There is no seat-count type here any more. Windows have no capacity, so there
+ * is nothing about a slot the server knows and the config does not.
  */
-
-export type SlotStatus = "open" | "full" | "closed";
-
-/** One day × time cell, as the server last saw it. */
-export interface SlotAvailability {
-  /** Event date id, e.g. "2026.08.08". */
-  readonly date: string;
-  /** Time slot id, e.g. "14:00". */
-  readonly time: string;
-  readonly remaining: number;
-  readonly status: SlotStatus;
-}
 
 /** Raw values held by the form. `honeypot` must stay empty for humans. */
 export interface RegistrationFormValues {
@@ -27,6 +18,7 @@ export interface RegistrationFormValues {
 export type RegistrationErrorCode =
   | "VALIDATION"
   | "DUPLICATE"
+  /** The chosen window was closed by hand. Never a capacity refusal. */
   | "SLOT_UNAVAILABLE"
   | "TIMEOUT"
   | "NETWORK"

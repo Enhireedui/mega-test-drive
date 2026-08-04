@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AnimatePresence, motion } from "framer-motion";
@@ -10,13 +10,12 @@ import { SuccessDialog } from "@/components/registration/SuccessDialog";
 import { ActionButton } from "@/components/ui/ActionButton";
 import { OptionGroup, type Option } from "@/components/ui/OptionGroup";
 import { TextField } from "@/components/ui/TextField";
-import { eventConfig, findEventDate, slotKey, slotRangeLabel } from "@/lib/config";
+import { eventConfig, findEventDate, isSlotClosed, slotRangeLabel } from "@/lib/config";
 import { DURATION, EASE_ENTER } from "@/lib/motion";
 import { formatPhoneInput, messageForErrorCode, registrationSchema } from "@/lib/validation";
-import type { RegistrationFormValues, SlotAvailability } from "@/types/registration";
+import type { RegistrationFormValues } from "@/types/registration";
 
 interface RegistrationFormProps {
-  availability: readonly SlotAvailability[];
   /** Focused when the form unfolds, so the keyboard opens on the first field. */
   autoFocus?: boolean;
 }
@@ -29,22 +28,66 @@ const EMPTY_FORM: RegistrationFormValues = {
   honeypot: "",
 };
 
+/** Shown on a window the organiser has closed. Nothing is ever *full*. */
+const CLOSED_NOTE = "Хаагдсан";
+
+/*
+ * Both option groups are built once, here, at module scope.
+ *
+ * No window has a registration ceiling, so there is nothing to count and nothing
+ * to fetch: whether a plate can be tapped depends only on `closedSlots`, which is
+ * fixed in lib/config.ts. That makes the options constant for the lifetime of the
+ * bundle — recomputing them per render, from a server snapshot that no longer
+ * exists, would be work in service of an answer that cannot change.
+ */
+const TIME_OPTIONS: Record<string, Option[]> = Object.fromEntries(
+  eventConfig.dates.map((date) => [
+    date.id,
+    eventConfig.timeSlots.map((slot) => {
+      const closed = isSlotClosed(date.id, slot.id);
+      return {
+        value: slot.id,
+        label: slotRangeLabel(slot.id),
+        /* An open window says nothing extra; only a closed one has news. */
+        ...(closed ? { note: CLOSED_NOTE } : {}),
+        disabled: closed,
+      };
+    }),
+  ]),
+);
+
+/**
+ * A day is offered unless every one of its windows has been closed by hand. Such
+ * a day is shown struck through rather than removed — removing it would leave
+ * someone wondering whether they had misread the poster.
+ */
+const DAY_OPTIONS: Option[] = eventConfig.dates.map((date) => {
+  const open = (TIME_OPTIONS[date.id] ?? []).some((option) => !option.disabled);
+
+  return {
+    value: date.id,
+    label: date.label,
+    ...(open ? { detail: `${date.weekday} гараг` } : { note: CLOSED_NOTE }),
+    disabled: !open,
+  };
+});
+
 /**
  * Name, number, day, time, send.
  *
  * Four questions and no steps. Unlike edition 5 there are two event days, so the
  * day is asked for rather than assumed — and choosing a day clears the time,
- * because the same clock time on Saturday and on Sunday are different slots with
- * different remaining seats. Silently carrying a selection across would let
- * someone submit a window they never saw the availability of.
+ * because the same clock time on Saturday and on Sunday are different windows,
+ * and carrying a selection across would submit a day nobody chose it for.
+ *
+ * Nothing here is rationed. Every window takes everyone who signs up, so no plate
+ * ever reads "дүүрсэн" and the form never needs to know what the sheet holds.
  */
-export function RegistrationForm({ availability, autoFocus = false }: RegistrationFormProps) {
+export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
   const rawId = useId();
   const dayLabelId = `${rawId}-day`;
   const timeLabelId = `${rawId}-time`;
 
-  /** Seats claimed in this browser session, applied on top of the server snapshot. */
-  const [claimedSeats, setClaimedSeats] = useState<Record<string, number>>({});
   const [submissionError, setSubmissionError] = useState<string | null>(null);
   const [confirmed, setConfirmed] = useState<string | null>(null);
   const submitLock = useRef(false);
@@ -89,61 +132,17 @@ export function RegistrationForm({ availability, autoFocus = false }: Registrati
     return () => window.clearTimeout(timer);
   }, [autoFocus]);
 
-  /** Remaining seats for one slot, after this session's own claims. */
-  const remainingFor = (slot: SlotAvailability) =>
-    Math.max(0, slot.remaining - (claimedSeats[slotKey(slot.date, slot.time)] ?? 0));
+  const timeOptions = visitDate ? (TIME_OPTIONS[visitDate] ?? []) : [];
 
-  /**
-   * A day is offered while any of its windows still has room. A day that has gone
-   * entirely is shown, struck through — removing it would leave someone
-   * wondering whether they had misread the poster.
-   */
-  const dayOptions = useMemo<Option[]>(
-    () =>
-      eventConfig.dates.map((date) => {
-        const slots = availability.filter((slot) => slot.date === date.id);
-        const open = slots.some((slot) => slot.status !== "closed" && remainingFor(slot) > 0);
-
-        return {
-          value: date.id,
-          label: date.label,
-          ...(open ? { detail: `${date.weekday} гараг` } : { note: "Дүүрсэн" }),
-          disabled: !open,
-        };
-      }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [availability, claimedSeats],
-  );
-
-  const timeOptions = useMemo<Option[]>(() => {
-    if (!visitDate) return [];
-
-    return availability
-      .filter((slot) => slot.date === visitDate)
-      .map((slot) => {
-        const remaining = remainingFor(slot);
-        const taken = slot.status === "closed" || remaining <= 0;
-
-        return {
-          value: slot.time,
-          label: slotRangeLabel(slot.time),
-          /* An open window says nothing extra; only a taken one has news. */
-          ...(taken ? { note: "Дүүрсэн" } : {}),
-          disabled: taken,
-        };
-      });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availability, claimedSeats, visitDate]);
-
-  /* One day open and one gone is the likely state by the second afternoon —
-     preselect the only real choice rather than making it look like a decision. */
+  /* If closures have left only one day standing, preselect it rather than
+     presenting a decision that has already been made. */
   useEffect(() => {
     if (visitDate) return;
-    const open = dayOptions.filter((option) => !option.disabled);
+    const open = DAY_OPTIONS.filter((option) => !option.disabled);
     if (open.length === 1 && open[0]) {
       setValue("visitDate", open[0].value, { shouldValidate: false });
     }
-  }, [dayOptions, visitDate, setValue]);
+  }, [visitDate, setValue]);
 
   const handleDayChange = (nextDate: string) => {
     if (nextDate === visitDate) return;
@@ -163,14 +162,12 @@ export function RegistrationForm({ availability, autoFocus = false }: Registrati
     submitLock.current = true;
     setSubmissionError(null);
 
-    const key = slotKey(values.visitDate, values.visitTime);
     const date = findEventDate(values.visitDate);
 
     try {
       const result = await registerAttendee(values);
 
       if (result.status === "success") {
-        setClaimedSeats((previous) => ({ ...previous, [key]: (previous[key] ?? 0) + 1 }));
         setConfirmed(
           `${date?.label ?? values.visitDate} · ${date?.weekday ?? ""} гараг · ` +
             `${slotRangeLabel(values.visitTime)}`,
@@ -180,9 +177,9 @@ export function RegistrationForm({ availability, autoFocus = false }: Registrati
       }
 
       const message = messageForErrorCode(result.code);
+      /* The only way this arrives is a window closed by hand after the page was
+         built. Clear the choice so the next tap is a fresh one. */
       if (result.code === "SLOT_UNAVAILABLE") {
-        /* Reflect the closure at once so the window greys out under the cursor. */
-        setClaimedSeats((previous) => ({ ...previous, [key]: eventConfig.maxPerSlot }));
         setValue("visitTime", "", { shouldValidate: false });
       }
       /*
@@ -275,7 +272,7 @@ export function RegistrationForm({ availability, autoFocus = false }: Registrati
           <OptionGroup
             labelledBy={dayLabelId}
             value={visitDate}
-            options={dayOptions}
+            options={DAY_OPTIONS}
             onChange={handleDayChange}
             error={errors.visitDate?.message}
             columns={2}

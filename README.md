@@ -85,14 +85,15 @@ flag can never affect a deploy.
 
 ## ⚠️ Upgrading from edition 5 — the backend must be redeployed
 
-**Edition 6 runs on two days. Edition 5's Apps Script counts capacity by time
-alone, which merges Saturday's 14:00 with Sunday's 14:00.** Left in place, each
-pair would report as full at half the real capacity and half the seats would
-never be sold.
+**Edition 5's Apps Script caps every arrival window at 40 and answers `full`
+beyond it. Edition 6 has no limit at all.** Left deployed, it keeps telling
+people "Сонгосон цаг дүүрсэн байна" for a ceiling this app no longer has — and
+because it counts by time alone, it merges Saturday's 14:00 with Sunday's 14:00
+and starts refusing at half of even that number.
 
-`docs/apps-script.gs` has been rewritten for this. It now writes a visit-date
-column (D, pushing the time to E) and returns composite keys from
-`?mode=counts` — `"2026.08.08|14:00"` rather than `"14:00"`.
+`docs/apps-script.gs` has been rewritten for this. It writes a visit-date column
+(D, pushing the time to E), and it counts nothing: the only refusal it can
+produce is `duplicate`.
 
 Before launch:
 
@@ -100,18 +101,15 @@ Before launch:
    editor and **publish a new version** (Deploy → Manage deployments → edit →
    New version). Editing without publishing leaves the old code running, which
    is the single most common way this appears to do nothing.
-2. Either start a clean sheet for this edition — simplest, and the counts should
-   begin at zero anyway — or insert one column before D on the existing sheet and
-   fill in the edition-6 date for every row you keep. Rows with a blank column D
-   are skipped by the counter, so their seats would stop being counted.
-3. Check `SLOT_CAPACITY` still matches `maxPerSlot` in `lib/config.ts`.
+2. Either start a clean sheet for this edition — simplest — or insert one column
+   before D on the existing sheet and fill in the edition-6 date for every row you
+   keep, so the day and the time do not share a column.
 
-The front end is already defensive about this: with more than one configured
-date, `lib/availability.ts` **drops** bare-time keys rather than attributing them
-to the first day. Dropping undercounts, which shows a slot as emptier than it
-is; the Apps Script re-counts under a document lock before every write, so an
-oversold slot is still refused at the point that matters. Mis-attributing, by
-contrast, would turn people away from a day that was open.
+Until step 1 is done the front end cannot help: capacity is enforced upstream, so
+a stale deployment refuses submissions no matter what this repo says. Dropping the
+recount also takes a full-sheet read off the write path, which is what used to
+push an Apps Script cold start past the 8s budget and produce
+`Хариу хэт удаж байна`.
 
 ---
 
@@ -127,19 +125,24 @@ dates: [
 ]
 timeSlots:  [{ id: "11:00" }, { id: "14:00" }, { id: "17:00" }]
 slotDurationHours: 3        // plates read "11:00 – 14:00"
-maxPerSlot: 40              // registration ceiling per DAY + time
 closedSlots: []             // force-close one: ["2026.08.09|17:00"]
 ```
 
-A slot that reaches `maxPerSlot`, or appears in `closedSlots`, disables itself
-and reads **Дүүрсэн**. A day whose every window has gone is shown struck through
-rather than removed — removing it would leave someone wondering whether they had
-misread the poster. If only one day is still open it is preselected, so the form
-does not present a decision that has already been made.
+**There is no registration ceiling.** Every day and every window accepts everyone
+who signs up, so no plate can ever read "дүүрсэн" and nobody is turned away for
+capacity. `closedSlots` is the only way to take a window off the form: named there
+by hand, it disables itself and reads **Хаагдсан**. A day whose every window has
+been closed is shown struck through rather than removed — removing it would leave
+someone wondering whether they had misread the poster. If closures leave only one
+day standing it is preselected, so the form does not present a decision that has
+already been made.
+
+Because availability cannot change at runtime, both option groups are built once
+at module scope in `RegistrationForm` and the page is fully static — no
+`revalidate`, and no upstream request between a visitor and the first paint.
 
 Derived automatically: the date range label, the weekday label, each slot's end
-time, the brand count, the Zod schema's allowed values, the capacity check in the
-server action, and the JSON-LD.
+time, the brand count, the Zod schema's allowed values, and the JSON-LD.
 
 ### Confirm before launch
 
@@ -215,8 +218,8 @@ filled in. Full deployment steps are in that file's header comment.
 | Direction | Contract                                                              |
 | --------- | --------------------------------------------------------------------- |
 | `POST`    | `{ timestamp, fullName, phone, visitDate, visitTime }`                |
-| →         | `{ ok: true }` \| `{ ok: false, reason: "duplicate"\|"full"\|… }`      |
-| `GET`     | `?mode=counts` → `{ counts: { "2026.08.08|14:00": 12 } }`             |
+| →         | `{ ok: true }` \| `{ ok: false, reason: "duplicate"\|"invalid"\|… }`   |
+| `GET`     | `{ ok: true }` — a health check; the site reads nothing back           |
 
 The script writes the date, time and phone as text (leading apostrophe) and reads
 every row with `getDisplayValues()`. Both matter: Sheets coerces `"11:00"` into a
@@ -227,15 +230,13 @@ Date depending on locale — `dateKey_` reassembles a canonical `yyyy.MM.dd` fro
 whatever three numbers come back, taking any four-digit group as the year so
 day-first and year-first locales land on the same key.
 
-Capacity and duplicate checks run inside an Apps Script document lock, so
-concurrent submissions cannot oversell a slot or write the same person twice.
+The duplicate check runs inside an Apps Script document lock, so concurrent
+submissions cannot write the same person twice. Nothing is counted — there is no
+capacity, so a submission is one append plus a phone-column read.
 
-Availability is read server-side on render (30s revalidate, tagged
-`availability`) and, after a successful write, purged with **`updateTag`** rather
-than `revalidateTag` — Next 16 needs read-your-own-writes here, so the seat just
-taken is gone from the next read instead of merely stale. Every failure mode — no
-webhook, timeout, non-200, malformed JSON — degrades to "assume open", so the
-page always renders and the authoritative check still happens at write time.
+Nothing is read back at render time either. The page holds no number that the
+sheet could contradict, so there is no availability fetch, no revalidate window
+and no cache tag to purge after a write.
 
 `GOOGLE_SHEETS_WEBHOOK_URL` is server-only. It is never prefixed with
 `NEXT_PUBLIC_` and never reaches the browser.
@@ -248,9 +249,14 @@ in `lib/validation.ts`. No technical detail is ever surfaced.
 `VALIDATION` · `DUPLICATE` · `SLOT_UNAVAILABLE` · `TIMEOUT` · `NETWORK` ·
 `UPSTREAM` · `CONFIG` · `UNKNOWN`
 
+`SLOT_UNAVAILABLE` no longer means "full" — no window has a ceiling. It means the
+window was closed by hand in `closedSlots`, and it reads
+"Сонгосон цаг боломжгүй болсон байна".
+
 **One registration per phone number**, on either day — matching what the form
-promises. The Apps Script check matches on the number alone and is the authority;
-a per-slot check would let the same person quietly take every window.
+promises. This is not a capacity rule: it keeps the list one row per person, so
+each driver registers under their own number. The Apps Script check matches on the
+number alone and is the authority.
 
 Double submission is blocked four ways: the fields lock behind a disabled
 `fieldset` while the action is in flight, the button disables itself, a ref-based
@@ -298,7 +304,8 @@ Notes specific to serverless hosting:
 
 - The submit path is a **single** upstream request with an 8s timeout, kept inside
   Netlify's 10s synchronous function budget. Apps Script can be slow on a cold
-  start, which is why there is no second round trip and no capacity pre-check.
+  start, which is why there is no second round trip — and, now that nothing is
+  counted, no full-sheet read in front of the append either.
 - The in-memory duplicate guard in `actions/register.ts` only covers one warm
   function instance. This is expected: the authoritative checks run inside the
   Apps Script document lock, so scaling out cannot produce duplicate rows.
@@ -475,21 +482,20 @@ utility.
 ```
 app/
   layout.tsx        metadata, font preloads, Backdrop, no-script notice
-  page.tsx          server component; reads availability, renders two bands
+  page.tsx          server component; fully static, renders two bands
   globals.css       design tokens (@theme), base layer, utilities, hero-rise
   fonts.css         self-hosted @font-face with unicode-range
   icon.svg          favicon, drawn as strokes (no webfont in browser chrome)
   error.tsx         render failure fallback
 actions/
-  register.ts       "use server" — validate, dedupe, capacity, write, updateTag
+  register.ts       "use server" — validate, dedupe, write
 lib/
   config.ts         SINGLE SOURCE OF TRUTH + derived label helpers
   validation.ts     Zod schema, MN phone rules, user-facing error copy
-  availability.ts   reads slot counts, projects them onto day × time
   motion.ts         easing + durations for the interaction animations
 types/
   event.ts          the event as content
-  registration.ts   form domain, shared by client, action and reader
+  registration.ts   form domain, shared by the client and the action
 components/
   sections/         Hero (server) · Invitation (server)
   registration/     RegistrationPanel · RegistrationForm · SuccessDialog

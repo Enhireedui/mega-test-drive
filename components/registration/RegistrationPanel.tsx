@@ -4,11 +4,6 @@ import { useRef, useState } from "react";
 
 import { RegistrationForm } from "@/components/registration/RegistrationForm";
 import { ActionButton } from "@/components/ui/ActionButton";
-import type { SlotAvailability } from "@/types/registration";
-
-interface RegistrationPanelProps {
-  availability: readonly SlotAvailability[];
-}
 
 /**
  * One button that becomes the form.
@@ -27,7 +22,7 @@ interface RegistrationPanelProps {
  * restores them can stall, the button appears to do nothing. CSS cannot stall,
  * and `animation-fill-mode: both` holds the finished state.
  */
-export function RegistrationPanel({ availability }: RegistrationPanelProps) {
+export function RegistrationPanel() {
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +43,7 @@ export function RegistrationPanel({ availability }: RegistrationPanelProps) {
           style={{ "--rise-delay": "0.05s" } as React.CSSProperties}
           className="hero-rise mx-auto w-full max-w-[38rem]"
         >
-          <RegistrationForm availability={availability} autoFocus />
+          <RegistrationForm autoFocus />
         </div>
       ) : (
         <div className="flex justify-center">

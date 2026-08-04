@@ -10,7 +10,7 @@ export interface Option {
   label: string;
   /** Quiet second line, e.g. a weekday. */
   detail?: string;
-  /** Shown only when the option cannot be taken, e.g. "Дүүрсэн". */
+  /** Shown only when the option cannot be taken, e.g. "Хаагдсан". */
   note?: string;
   disabled?: boolean;
 }
@@ -64,7 +64,7 @@ export function OptionGroup({
   }, []);
   const firstSelectable = selectable[0] ?? -1;
 
-  /* Arrow-key traversal, as expected of a radiogroup. Skips taken slots. */
+  /* Arrow-key traversal, as expected of a radiogroup. Skips closed slots. */
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const step =
       event.key === "ArrowRight" || event.key === "ArrowDown"

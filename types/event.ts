@@ -101,9 +101,12 @@ export interface EventConfig {
   readonly dates: readonly EventDate[];
   readonly timeSlots: readonly EventTimeSlot[];
   readonly slotDurationHours: number;
-  /** Registration ceiling for one day + time slot. */
-  readonly maxPerSlot: number;
-  /** Slots closed by hand as `"<dateId>|<timeId>"`, whatever the count says. */
+  /**
+   * Slots closed by hand as `"<dateId>|<timeId>"`.
+   *
+   * The only way a window can be unavailable. There is no registration ceiling:
+   * every day and every time takes as many people as turn up.
+   */
   readonly closedSlots: readonly string[];
   readonly venue: EventVenue;
   readonly brands: readonly EventBrand[];

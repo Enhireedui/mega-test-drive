@@ -2,7 +2,6 @@ import Image from "next/image";
 
 import { RegistrationPanel } from "@/components/registration/RegistrationPanel";
 import { eventConfig, eventDateRangeLabel, eventWeekdayLabel, venueLabel } from "@/lib/config";
-import type { SlotAvailability } from "@/types/registration";
 
 /**
  * One screen. Everything on a single vertical axis.
@@ -51,11 +50,7 @@ const BEAT = {
 /** `--rise-delay` is read by `.hero-rise` in globals.css. */
 const rise = (delay: number) => ({ "--rise-delay": `${delay}s` }) as React.CSSProperties;
 
-interface HeroProps {
-  availability: readonly SlotAvailability[];
-}
-
-export function Hero({ availability }: HeroProps) {
+export function Hero() {
   const { presenter, host, lockup } = eventConfig;
 
   return (
@@ -164,7 +159,7 @@ export function Hero({ availability }: HeroProps) {
           style={rise(BEAT.action)}
           className="hero-rise mt-[clamp(2.5rem,6svh,4rem)] w-full"
         >
-          <RegistrationPanel availability={availability} />
+          <RegistrationPanel />
         </div>
       </div>
     </section>

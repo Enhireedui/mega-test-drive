@@ -73,9 +73,13 @@ export const eventConfig: EventConfig = {
   ],
   slotDurationHours: 3,
 
-  maxPerSlot: 40,
-
-  // Close one slot by hand with `"<dateId>|<timeId>"`, e.g. "2026.08.09|17:00".
+  /*
+   * No registration ceiling. Every day and every window accepts everyone who
+   * signs up, so nobody is ever told a time is full.
+   *
+   * The only way to take a window off the form is to name it here by hand, as
+   * `"<dateId>|<timeId>"` — e.g. "2026.08.09|17:00".
+   */
   closedSlots: [],
 
   venue: {
@@ -138,13 +142,13 @@ export const eventConfig: EventConfig = {
       question: "Өдөр, цагаа хэрхэн сонгох вэ?",
       answer:
         "Бүртгэлийн хэсэгт хоёр өдрөөс өдрөө сонгоод, тухайн өдрийн гурван цагийн хуваарийн аль " +
-        "нэгийг зааж өгнө. Суудал дүүрсэн цаг сонгох боломжгүй болж харагдана.",
+        "нэгийг зааж өгнө. Цаг бүр хязгааргүй, тиймээс аль ч өдөр, аль ч цагийг чөлөөтэй сонгоно.",
     },
     {
       question: "Нэг утасны дугаараар хэд удаа бүртгүүлэх боломжтой вэ?",
       answer:
-        "Нэг удаа. Ингэснээр цаг бүрийн суудлын тоо бодит байх боломжтой болно. Туршин жолоодох " +
-        "хүн тус бүр өөрийн дугаараар бүртгүүлнэ.",
+        "Нэг удаа. Туршин жолоодох хүн тус бүр өөрийн дугаараар бүртгүүлнэ — ингэснээр " +
+        "бүртгэлийн жагсаалт хүн тус бүрээр бодит байна.",
     },
     {
       question: "Ямар мэдээлэл шаардах вэ?",

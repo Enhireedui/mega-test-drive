@@ -1,8 +1,5 @@
 "use server";
 
-import { updateTag } from "next/cache";
-
-import { AVAILABILITY_TAG } from "@/lib/availability";
 import { isSlotClosed } from "@/lib/config";
 import { normalizeFullName, normalizePhone, registrationSchema } from "@/lib/validation";
 import type {
@@ -34,7 +31,7 @@ function isTimeoutError(error: unknown): boolean {
   return error instanceof Error && (error.name === "TimeoutError" || error.name === "AbortError");
 }
 
-/** Apps Script answers `{ ok: true }` or `{ ok: false, reason: "full" | "duplicate" }`. */
+/** Apps Script answers `{ ok: true }` or `{ ok: false, reason: "duplicate" | … }`. */
 function readUpstreamOutcome(raw: string): { ok: boolean; reason?: string } | null {
   try {
     const parsed: unknown = JSON.parse(raw);
@@ -73,7 +70,8 @@ export async function registerAttendee(
   const phone = normalizePhone(parsed.data.phone);
   const { visitDate, visitTime } = parsed.data;
 
-  // 3 — manually closed slot.
+  // 3 — manually closed slot. The only refusal a window can produce: there is no
+  //     per-day or per-time ceiling, so nobody is ever turned away for capacity.
   if (isSlotClosed(visitDate, visitTime)) {
     return { status: "error", code: "SLOT_UNAVAILABLE", field: "visitTime" };
   }
@@ -88,11 +86,9 @@ export async function registerAttendee(
   }
 
   /*
-   * No capacity pre-check here on purpose. Apps Script re-counts inside a
-   * document lock and answers `full`, which is the only answer that can be
-   * trusted under concurrency — a pre-check would add a second round trip to
-   * the critical path (risking the host's 10s function timeout) and still not
-   * be authoritative.
+   * One upstream request, and only one. There is no capacity to check, so the
+   * write is the whole conversation — which is what keeps this inside the host's
+   * 10s synchronous function budget on an Apps Script cold start.
    */
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   if (!webhookUrl) {
@@ -141,6 +137,12 @@ export async function registerAttendee(
       if (outcome.reason === "duplicate") {
         return { status: "error", code: "DUPLICATE", field: "phone" };
       }
+      /*
+       * `full` is no longer a refusal this app can cause — the script has no
+       * capacity check. It is still mapped rather than dropped because an older
+       * deployment left in place would answer it, and letting that fall through
+       * to UPSTREAM would hide a real, actionable message behind a shrug.
+       */
       if (outcome.reason === "full") {
         return { status: "error", code: "SLOT_UNAVAILABLE", field: "visitTime" };
       }
@@ -159,9 +161,5 @@ export async function registerAttendee(
   }
 
   recentSubmissions.set(dedupeKey, now);
-  /* `updateTag`, not `revalidateTag`: read-your-own-writes. The seat this call
-     just took must be gone from the next availability read, not merely stale. */
-  updateTag(AVAILABILITY_TAG);
-
   return { status: "success" };
 }

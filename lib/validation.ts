@@ -71,7 +71,9 @@ export function normalizeFullName(value: string): string {
 export const errorCopy: Record<string, string> = {
   VALIDATION: "Бүртгэлийн мэдээлэл дутуу байна. Талбар бүрийг шалгаад дахин оролдоно уу.",
   DUPLICATE: "Энэ утасны дугаараар аль хэдийн бүртгүүлсэн байна.",
-  SLOT_UNAVAILABLE: "Сонгосон цаг дүүрсэн байна. Өөр цаг сонгоно уу.",
+  /* Not "дүүрсэн" — no window has a ceiling. A time is unavailable only when the
+     organiser has closed it by hand. */
+  SLOT_UNAVAILABLE: "Сонгосон цаг боломжгүй болсон байна. Өөр цаг сонгоно уу.",
   TIMEOUT: "Хариу хэт удаж байна. Холболтоо шалгаад дахин оролдоно уу.",
   NETWORK: "Интернэт холболт тасалдсан байна. Дахин оролдоно уу.",
   UPSTREAM: "Бүртгэл хүлээн авахад түр зуурын доголдол гарлаа. Хэсэг хугацааны дараа дахин оролдоно уу.",
