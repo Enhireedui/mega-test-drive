@@ -1,12 +1,13 @@
 import type { Metadata, Viewport } from "next";
 
-import { Backdrop } from "@/components/Backdrop";
-import { MotionProvider } from "@/components/MotionProvider";
+import { Backdrop } from "@/components/ui/Backdrop";
+import { MotionProvider } from "@/components/ui/MotionProvider";
 import {
+  brandCount,
   eventConfig,
   eventDateRangeLabel,
-  eventHoursLabel,
   eventWeekdayLabel,
+  venueLabel,
 } from "@/lib/config";
 
 import "./globals.css";
@@ -21,47 +22,51 @@ const PRELOADED_FONTS = [
 ] as const;
 
 const description =
-  `${eventConfig.stats.brandCount} брэндийн ${eventConfig.stats.modelCountLabel} загвар — ` +
-  `${eventDateRangeLabel()} (${eventWeekdayLabel()}), ${eventConfig.venue.name}, ` +
-  `${eventHoursLabel()}. ${eventConfig.title} өдөрлөгт онлайнаар бүртгүүлээд суудлаа бариарай.`;
+  `${brandCount} брэндийн шинэ загваруудыг туршин жолоодох ${eventConfig.title} — ` +
+  `${eventDateRangeLabel()} (${eventWeekdayLabel()}), ${venueLabel()}. ` +
+  `${eventConfig.host.name}-ийн хүрээнд. Онлайнаар бүртгүүлээд цагаа бариарай.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(eventConfig.siteUrl),
   title: {
-    default: `${eventConfig.title} · ${eventConfig.distributor}`,
-    template: `%s · ${eventConfig.distributor}`,
+    default: `${eventConfig.title} · ${eventConfig.presenter.name}`,
+    template: `%s · ${eventConfig.title}`,
   },
   description,
   applicationName: eventConfig.title,
   keywords: [
-    "SAIN MOTORS",
+    eventConfig.presenter.name,
+    eventConfig.title,
     "MEGA TEST DRIVE",
+    "ШИЛИЙН БОГД",
     "туршилтын жолоодлого",
     "test drive Mongolia",
-    ...eventConfig.brands,
+    ...eventConfig.brands.map((brand) => brand.name),
   ],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
     locale: "mn_MN",
     url: eventConfig.siteUrl,
-    siteName: eventConfig.distributor,
-    title: `${eventConfig.title} · ${eventConfig.distributor}`,
+    siteName: eventConfig.presenter.name,
+    title: `${eventConfig.title} · ${eventConfig.presenter.name}`,
     description,
+    /* The poster, whose baked-in typography is an asset in a social card and a
+       liability everywhere else on the site. */
     images: [
       {
-        url: "/event/fleet.jpg",
-        width: 1772,
-        height: 1772,
+        url: eventConfig.poster.src,
+        width: eventConfig.poster.width,
+        height: eventConfig.poster.height,
         alt: eventConfig.title,
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${eventConfig.title} · ${eventConfig.distributor}`,
+    title: `${eventConfig.title} · ${eventConfig.presenter.name}`,
     description,
-    images: ["/event/fleet.jpg"],
+    images: [eventConfig.poster.src],
   },
   robots: { index: true, follow: true },
   formatDetection: { telephone: false },
@@ -70,8 +75,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  /* One dark surface throughout, so the browser chrome should match it rather
+     than framing it in white. */
   colorScheme: "dark",
-  themeColor: "#070B16",
+  themeColor: "#06070a",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -88,16 +95,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             crossOrigin="anonymous"
           />
         ))}
-        {/* If the bundle never arrives, scroll-revealed content must not stay hidden. */}
-        <noscript>
-          <style>{`[data-reveal]{opacity:1!important;transform:none!important}`}</style>
-        </noscript>
       </head>
-      <body className="relative min-h-svh antialiased">
+      <body className="relative min-h-svh">
         <Backdrop />
-        <MotionProvider>
-          <div className="relative z-10">{children}</div>
-        </MotionProvider>
+        {/*
+         * Everything on this page paints without JavaScript — the entrances are
+         * CSS animations, not scripted ones. The form is the exception: it opens
+         * on React state and submits through a server action, so without a
+         * bundle the button genuinely cannot work, and saying so is more use than
+         * leaving someone tapping it.
+         */}
+        <noscript>
+          <p className="border-b border-edge px-6 py-3 text-center text-[0.8125rem] text-white/70">
+            Бүртгэлийн формыг ажиллуулахын тулд JavaScript-ийг зөвшөөрнө үү.
+          </p>
+        </noscript>
+        <MotionProvider>{children}</MotionProvider>
       </body>
     </html>
   );

@@ -1,56 +1,53 @@
-import type { Metadata } from "next";
-
-import { EventInfo } from "@/components/EventInfo";
-import { Footer } from "@/components/Footer";
-import { PageHeader } from "@/components/PageHeader";
-import { RegistrationCard } from "@/components/RegistrationCard";
-import { Reveal } from "@/components/Reveal";
+import { Hero } from "@/components/sections/Hero";
+import { SiteFooter } from "@/components/sections/SiteFooter";
 import { getAvailability } from "@/lib/availability";
 import { eventConfig, eventStartTimestamps } from "@/lib/config";
 
-export const metadata: Metadata = {
-  title: "Бүртгэл",
-};
-
-/** Availability is read on the server every 30s; the shell stays static. */
+/** Availability is re-read on the server every 30s; the shell stays static. */
 export const revalidate = 30;
 
 function EventStructuredData() {
   const [firstStart] = eventStartTimestamps();
   const startDate = firstStart === undefined ? undefined : new Date(firstStart).toISOString();
+  const { venue, dates } = eventConfig;
+  const lastDate = dates[dates.length - 1];
 
+  /*
+   * Only claims that are printed on the poster or enforced by this app. In
+   * particular there is no `offers` block: nothing has told us what admission
+   * costs, and asserting a price of zero in machine-readable form — where a
+   * search engine can surface it as fact — would be worse than omitting it.
+   */
   const schema = {
     "@context": "https://schema.org",
     "@type": "Event",
     name: eventConfig.title,
-    description: eventConfig.intro.body[0] ?? eventConfig.title,
+    description: `${eventConfig.host.name}-ийн хүрээнд болох ${eventConfig.title}.`,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     ...(startDate ? { startDate } : {}),
+    ...(lastDate ? { endDate: lastDate.iso } : {}),
     location: {
       "@type": "Place",
-      name: eventConfig.venue.name,
+      name: venue.name,
       address: {
         "@type": "PostalAddress",
-        addressLocality: "Улаанбаатар",
+        addressRegion: venue.region,
         addressCountry: "MN",
-        description: eventConfig.venue.hint,
+      },
+      geo: {
+        "@type": "GeoCoordinates",
+        latitude: venue.latitude,
+        longitude: venue.longitude,
       },
     },
-    organizer: {
+    superEvent: { "@type": "Event", name: eventConfig.host.name },
+    sponsor: {
       "@type": "Organization",
-      name: eventConfig.distributor,
+      name: eventConfig.presenter.name,
       url: eventConfig.siteUrl,
     },
-    image: [`${eventConfig.siteUrl}/event/fleet.jpg`],
-    isAccessibleForFree: true,
-    offers: {
-      "@type": "Offer",
-      price: 0,
-      priceCurrency: "MNT",
-      availability: "https://schema.org/InStock",
-      url: `${eventConfig.siteUrl}/#register`,
-    },
+    image: [`${eventConfig.siteUrl}${eventConfig.poster.src}`],
   };
 
   return (
@@ -62,28 +59,33 @@ function EventStructuredData() {
   );
 }
 
+/**
+ * One screen, and a sign-off.
+ *
+ * The event with its form fills the viewport; below it the sponsor's mark and one
+ * line naming them. There is nothing else — no invitation copy, no brand wall, no
+ * photography, no availability counter, no FAQ. A visitor arrives, reads two
+ * facts, and registers.
+ */
 export default async function Page() {
-  const slots = await getAvailability();
+  const availability = await getAvailability();
 
   return (
     <>
       <EventStructuredData />
-      <main className="mx-auto flex w-full max-w-[46rem] flex-col items-center px-5 pb-14 pt-10 sm:px-8 sm:pb-16 sm:pt-14">
-        <PageHeader />
 
-        {/* The incentive above hands off to the button here. The day now sits
-            as a micro-label above the time cards inside the form, so there is
-            no separate logistics block to repeat it. */}
-        <div className="mt-11 w-full sm:mt-13">
-          <RegistrationCard availability={slots} />
-        </div>
+      <a
+        href="#register"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-5 focus:py-3 focus:text-[0.8125rem] focus:text-night"
+      >
+        Бүртгэл рүү шилжих
+      </a>
 
-        <Reveal delay={0.05} className="mt-16 w-full sm:mt-20">
-          <EventInfo />
-        </Reveal>
-
-        <Footer />
+      <main>
+        <Hero availability={availability} />
       </main>
+
+      <SiteFooter />
     </>
   );
 }

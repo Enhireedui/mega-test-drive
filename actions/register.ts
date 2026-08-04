@@ -1,6 +1,6 @@
 "use server";
 
-import { revalidateTag } from "next/cache";
+import { updateTag } from "next/cache";
 
 import { AVAILABILITY_TAG } from "@/lib/availability";
 import { isSlotClosed } from "@/lib/config";
@@ -159,7 +159,9 @@ export async function registerAttendee(
   }
 
   recentSubmissions.set(dedupeKey, now);
-  revalidateTag(AVAILABILITY_TAG);
+  /* `updateTag`, not `revalidateTag`: read-your-own-writes. The seat this call
+     just took must be gone from the next availability read, not merely stale. */
+  updateTag(AVAILABILITY_TAG);
 
   return { status: "success" };
 }

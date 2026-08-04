@@ -1,5 +1,5 @@
 {
-  "name": "sain-motors-mega-test-drive-5",
+  "name": "sain-motors-mega-test-drive-6",
   "version": "1.0.0",
   "private": true,
   "engines": {
@@ -9,32 +9,33 @@
     "dev": "node --use-system-ca ./node_modules/next/dist/bin/next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "assets": "node scripts/prepare-assets.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "framer-motion": "^12.23.12",
-    "lucide-react": "^0.469.0",
-    "next": "^15.5.4",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
+    "framer-motion": "^12.42.2",
+    "next": "^16.3.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "react-hook-form": "^7.54.2",
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
-    "@tailwindcss/postcss": "^4.1.13",
+    "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.10.5",
     "@types/react": "^19.0.7",
     "@types/react-dom": "^19.0.3",
     "eslint": "^9.18.0",
-    "eslint-config-next": "^15.5.4",
-    "tailwindcss": "^4.1.13",
+    "eslint-config-next": "^16.3.0",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.7.3"
   },
   "allowScripts": {
-    "sharp@0.34.5": true,
+    "sharp@0.35.3": true,
     "unrs-resolver@1.12.2": true
   }
 }

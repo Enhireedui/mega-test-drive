@@ -1,29 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
+import { ActionButton } from "@/components/ui/ActionButton";
 
-export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    void error;
-  }, [error]);
-
-  /* svh, not vh: on a phone 100vh is taller than the visible area while the
-     browser's own chrome is on screen, which would push the button under it. */
+/**
+ * The page failed to render.
+ *
+ * Set in the same type and on the same ground as everything else, because a
+ * visitor who has hit this has no use for a styled panel — they need one sentence
+ * and a button. `svh`, not `vh`: on a phone 100vh is taller than the visible area
+ * while the browser's own chrome is on screen, which would push the button under
+ * it.
+ */
+export default function Error({ reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
-    <div className="flex min-h-svh items-center justify-center px-5">
-      <div className="w-full max-w-md rounded-[1.75rem] border border-white/10 bg-slate-950/70 p-8 text-center shadow-2xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-brand-hi">Something went wrong</p>
-        <h2 className="mt-3 text-2xl font-semibold text-white">Бүртгэлний процессыг гүйцэтгэх боломжгүй байна</h2>
-        <p className="mt-3 text-sm leading-6 text-white/70">
-          Энэ асуудал түр зуурын байж болно. Дахин оролдоод үзнэ үү.
+    <div className="flex min-h-svh items-center justify-center px-7">
+      <div className="w-full max-w-md">
+        <p className="eyebrow text-white/50">Алдаа</p>
+        <h1 className="display-md mt-7 text-white">Хуудсыг харуулах боломжгүй байна.</h1>
+        <p className="mt-5 text-[0.9375rem] leading-relaxed text-white/55">
+          Энэ доголдол түр зуурын байж магадгүй. Дахин оролдоод үзнэ үү.
         </p>
-        <button
-          type="button"
-          onClick={() => reset()}
-          className="mt-6 inline-flex items-center justify-center rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-        >
+        <ActionButton size="md" onClick={() => reset()} className="mt-10">
           Дахин оролдох
-        </button>
+        </ActionButton>
       </div>
     </div>
   );

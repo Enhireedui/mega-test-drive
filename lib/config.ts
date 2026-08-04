@@ -1,27 +1,71 @@
-import type { EventConfig } from "@/types/registration";
+import type { EventConfig } from "@/types/event";
 
 /**
- * SINGLE SOURCE OF TRUTH for the event.
+ * SINGLE SOURCE OF TRUTH for MEGA TEST DRIVE 6.
  *
- * Running the next edition should only require edits in this file:
- * dates, time slots, per-slot capacity, venue, brands and headline copy.
- * Nothing below is duplicated anywhere else in the app.
+ * Every fact, name, number and asset path the page shows comes from here.
+ * Running the next edition should mean editing this file and re-running
+ * `scripts/prepare-assets.mjs` — nothing below is repeated anywhere else.
+ *
+ * The facts are transcribed from the official poster
+ * ("Shiliin Bogd undsen poster.tif"): a two-day event on 8–9 August 2026 at the
+ * central stadium in Sükhbaatar province, run inside the Шилийн Богд Moto
+ * Festival, with SAIN MOTORS as general sponsor.
  */
 export const eventConfig: EventConfig = {
-  edition: 5,
-  title: "MEGA TEST DRIVE 5",
-  distributor: "SAIN MOTORS",
-  distributorNote: "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР",
+  edition: 6,
+  title: "MEGA TEST DRIVE 6",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://megatestdrive.sainmotors.mn",
 
-  // Ulaanbaatar is UTC+8 year round.
+  // Mongolia is UTC+8 all year.
   utcOffsetHours: 8,
 
-  // A single event day, so the form asks only for a time. Adding a second date
-  // here would also mean reintroducing a date picker in RegistrationCard.
-  dates: [{ id: "2026.08.01", label: "2026.08.01", weekday: "Бямба", iso: "2026-08-01" }],
+  host: {
+    name: "ШИЛИЙН БОГД MOTO FESTIVAL",
+    logo: "/brand/shiliin-bogd.png",
+    logoWidth: 1200,
+    logoHeight: 341,
+  },
 
-  // Three-hour intervals covering 11:00 – 20:00.
+  presenter: {
+    name: "SAIN MOTORS",
+    // As written on the poster, which credits them as general sponsor.
+    role: "ЕРӨНХИЙ ИВЭЭН ТЭТГЭГЧ",
+    // The footer signs off with the standing relationship instead: official
+    // distributor. Same company, the other half of what they are to this event.
+    signOffRole: "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР",
+    logo: "/brand/sain-motors.png",
+    logoWidth: 900,
+    logoHeight: 337,
+  },
+
+  lockup: {
+    src: "/brand/mega-test-drive-6.png",
+    width: 1800,
+    height: 521,
+  },
+
+  poster: { src: "/event/poster.jpg", width: 1200, height: 1500 },
+
+  // Two days, so the form asks for a day as well as a time.
+  dates: [
+    {
+      id: "2026.08.08",
+      label: "2026.08.08",
+      dayOfMonth: "08",
+      weekday: "Бямба",
+      iso: "2026-08-08",
+    },
+    {
+      id: "2026.08.09",
+      label: "2026.08.09",
+      dayOfMonth: "09",
+      weekday: "Ням",
+      iso: "2026-08-09",
+    },
+  ],
+
+  // Three-hour arrival windows covering 11:00 – 20:00.
   timeSlots: [
     { id: "11:00", label: "11:00" },
     { id: "14:00", label: "14:00" },
@@ -31,64 +75,102 @@ export const eventConfig: EventConfig = {
 
   maxPerSlot: 40,
 
-  // Close a slot by hand with `"<dateId>|<timeId>"`, e.g. "2026.08.01|14:00".
+  // Close one slot by hand with `"<dateId>|<timeId>"`, e.g. "2026.08.09|17:00".
   closedSlots: [],
 
   venue: {
-    name: "BYD 4S Showroom",
-    hint: "Цамбагаравын баруун урд",
+    name: "Төв цэнгэлдэх хүрээлэн",
+    region: "Сүхбаатар аймаг",
+    // Fill in to show the "Замыг харах" link; empty keeps it hidden.
     mapUrl: "",
+    // Baruun-Urt, the provincial centre — the coordinates the forecast uses.
+    latitude: 46.6806,
+    longitude: 113.2792,
+    timeZone: "Asia/Ulaanbaatar",
   },
 
-  // TODO before launch: fill in the official contact channels.
-  // Empty strings intentionally hide the corresponding rows rather than
-  // shipping placeholder data.
-  contact: {
-    phone: "",
-    facebookUrl: "",
-    instagramUrl: "",
-  },
-
+  /*
+   * The ten marques, in the poster's reading order.
+   *
+   * `scale` is optical, not geometric. All ten marks were exported at a common
+   * cap height, exactly as the poster sets them, but equal height is not equal
+   * *weight*: SOUEAST is over three times as wide as 212 at that height, and
+   * BYD's strokes are far heavier than JETOUR's. These multipliers pull the
+   * extremes back so no single mark dominates the wall. Adjust by eye, never by
+   * formula.
+   */
   brands: [
-    "JETOUR",
-    "SOUEAST",
-    "CHERY",
-    "BYD",
-    "RIDDARA",
-    "AITO",
-    "212",
-    "BESTUNE",
-    "RELY",
-    "MAXUS",
+    { name: "JETOUR", logo: "/brands/jetour.png", logoWidth: 560, logoHeight: 53, scale: 0.98 },
+    { name: "SOUEAST", logo: "/brands/soueast.png", logoWidth: 560, logoHeight: 37, scale: 0.86 },
+    { name: "CHERY", logo: "/brands/chery.png", logoWidth: 560, logoHeight: 69, scale: 1 },
+    { name: "BYD", logo: "/brands/byd.png", logoWidth: 560, logoHeight: 107, scale: 0.95 },
+    { name: "RIDDARA", logo: "/brands/riddara.png", logoWidth: 560, logoHeight: 52, scale: 0.97 },
+    { name: "AITO", logo: "/brands/aito.png", logoWidth: 560, logoHeight: 76, scale: 1 },
+    {
+      name: "212 Special Edition",
+      logo: "/brands/212.png",
+      logoWidth: 560,
+      logoHeight: 114,
+      scale: 0.92,
+    },
+    { name: "BESTUNE", logo: "/brands/bestune.png", logoWidth: 560, logoHeight: 53, scale: 0.98 },
+    { name: "RELY", logo: "/brands/rely.png", logoWidth: 560, logoHeight: 104, scale: 0.96 },
+    { name: "MAXUS", logo: "/brands/maxus.png", logoWidth: 560, logoHeight: 55, scale: 1 },
   ],
 
-  stats: {
-    brandCount: 11,
-    modelCountLabel: "20 гаруй",
-    luckyDrawGuests: 50,
-  },
-
-  // Split so "50" can be set as the graphic accent without repeating itself.
-  incentive: {
-    before: "Бүртгүүлсэн эхний",
-    highlight: "50",
-    after: "зочин азын хүрд эргүүлэх эрхтэй",
-  },
-
-  intro: {
-    body: [
-      "11 брэндийн 20 гаруй шинэ загварыг туршин жолоодож, энэ сарын хамгийн том MEGA TEST DRIVE 5 өдөрлөгт оролцоорой.",
-      "Та гэр бүл, найз нөхөдтэйгөө хүрэлцэн ирж, өөрт таалагдсан автомашинаа туршиж нэг өдрийг сонирхолтой өнгөрүүлэхийг урьж байна.",
-    ],
-  },
+  /*
+   * Five questions, and no more.
+   *
+   * Every answer here restates either a fact printed on the poster or something
+   * this form itself does. Nothing about price, prizes, documents, transport or
+   * the running order is claimed, because none of that has been supplied — an
+   * invented answer on a registration page is worse than no answer at all.
+   * Anything the organiser confirms later belongs here, in this list.
+   */
+  faq: [
+    {
+      question: "Арга хэмжээ хэзээ, хаана болох вэ?",
+      answer:
+        "2026 оны 8 дугаар сарын 8, 9-нд — Бямба, Ням гарагт. Сүхбаатар аймгийн Төв цэнгэлдэх " +
+        "хүрээлэнд, Шилийн Богд Moto Festival-ийн хүрээнд болно.",
+    },
+    {
+      question: "Өдөр, цагаа хэрхэн сонгох вэ?",
+      answer:
+        "Бүртгэлийн хэсэгт хоёр өдрөөс өдрөө сонгоод, тухайн өдрийн гурван цагийн хуваарийн аль " +
+        "нэгийг зааж өгнө. Суудал дүүрсэн цаг сонгох боломжгүй болж харагдана.",
+    },
+    {
+      question: "Нэг утасны дугаараар хэд удаа бүртгүүлэх боломжтой вэ?",
+      answer:
+        "Нэг удаа. Ингэснээр цаг бүрийн суудлын тоо бодит байх боломжтой болно. Туршин жолоодох " +
+        "хүн тус бүр өөрийн дугаараар бүртгүүлнэ.",
+    },
+    {
+      question: "Ямар мэдээлэл шаардах вэ?",
+      answer:
+        "Нэр, утасны дугаар, ирэх өдөр, ирэх цаг. Өөр ямар нэг мэдээлэл бөглөх шаардлагагүй.",
+    },
+    {
+      question: "Бүртгэл баталгаажсаныг хэрхэн мэдэх вэ?",
+      answer:
+        "Бүртгэлийг илгээмэгц дэлгэц дээр баталгаажсан тухай шууд харагдана. Хэрэв харагдахгүй " +
+        "бол бүртгэл хийгдээгүй гэсэн үг, тиймээс дахин илгээх шаардлагатай.",
+    },
+  ],
 } as const;
+
+/* ── derived values ───────────────────────────────────────────────────────── */
+
+/** Counted from the brand list, never written down twice. */
+export const brandCount = eventConfig.brands.length;
 
 /** Composite key for one bookable slot. Must match the Apps Script key format. */
 export function slotKey(dateId: string, timeId: string): string {
   return `${dateId}|${timeId}`;
 }
 
-/** True when the slot has been closed by hand in the config. */
+/** True when the slot has been closed by hand in the config above. */
 export function isSlotClosed(dateId: string, timeId: string): boolean {
   return eventConfig.closedSlots.includes(slotKey(dateId, timeId));
 }
@@ -101,14 +183,14 @@ export function isKnownTimeSlot(timeId: string): boolean {
   return eventConfig.timeSlots.some((slot) => slot.id === timeId);
 }
 
-/** "2026.07.04 – 07.05" for a range, or the single label for one date. */
+/** "2026.08.08 – 09" across a range, or the single label for one day. */
 export function eventDateRangeLabel(): string {
-  const dates = eventConfig.dates;
+  const { dates } = eventConfig;
   const first = dates[0];
   if (!first) return "";
   const last = dates[dates.length - 1];
   if (!last || last === first) return first.label;
-  return `${first.label} – ${last.label.slice(5)}`;
+  return `${first.label} – ${last.dayOfMonth}`;
 }
 
 /** "Бямба, Ням" */
@@ -116,27 +198,33 @@ export function eventWeekdayLabel(): string {
   return eventConfig.dates.map((date) => date.weekday).join(", ");
 }
 
-/** "11:00 – 17:00", derived from the first slot and the last slot's end. */
+/** "11:00 – 20:00", derived from the first slot and the last slot's end. */
 export function eventHoursLabel(): string {
-  const slots = eventConfig.timeSlots;
-  const first = slots[0];
-  const last = slots[slots.length - 1];
+  const { timeSlots } = eventConfig;
+  const first = timeSlots[0];
+  const last = timeSlots[timeSlots.length - 1];
   if (!first || !last) return "";
   const [lastHour = "0", lastMinute = "00"] = last.id.split(":");
   const closingHour = Number(lastHour) + eventConfig.slotDurationHours;
   return `${first.label} – ${String(closingHour).padStart(2, "0")}:${lastMinute}`;
 }
 
-/** "11:00 – 13:00" for one slot, used on the slot cards. */
+/** "11:00 – 14:00" for one slot, used on the slot controls. */
 export function slotRangeLabel(timeId: string): string {
   const [hour = "0", minute = "00"] = timeId.split(":");
   const endHour = Number(hour) + eventConfig.slotDurationHours;
   return `${timeId} – ${String(endHour).padStart(2, "0")}:${minute}`;
 }
 
+/** "Сүхбаатар аймаг · Төв цэнгэлдэх хүрээлэн" */
+export function venueLabel(): string {
+  const { region, name } = eventConfig.venue;
+  return region ? `${region} · ${name}` : name;
+}
+
 /**
  * Epoch milliseconds for the opening moment of every event day.
- * Pure — no reference to the current time, so it is hydration-safe.
+ * Pure — never reads the current time, so it is hydration-safe.
  */
 export function eventStartTimestamps(): number[] {
   const firstSlot = eventConfig.timeSlots[0];

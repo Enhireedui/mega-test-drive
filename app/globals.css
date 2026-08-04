@@ -2,72 +2,52 @@
 @import "./fonts.css";
 
 /* ==========================================================================
-   SAIN MOTORS — MEGA TEST DRIVE 5
-   Design tokens. Restrained dark palette, one red, light instead of shadow.
+   MEGA TEST DRIVE 6
+   Design tokens.
+
+   One near-black ground, white type, one red. The page is a single dark surface
+   from the first pixel to the last — which is also what the supplied artwork
+   wants, since every lockup is white-and-red on transparency and was drawn for
+   exactly that ground.
+
+   There is no light palette. There used to be one, for a white page with a dark
+   hero; now that nothing is set on paper, carrying `paper`/`ink` tokens and a
+   `tone` prop through every control would be two code paths where one is real.
    ========================================================================== */
 
 @theme {
-  /* --- Ground ---------------------------------------------------------- */
-  --color-night: #070b16;
-  --color-abyss: #04060e;
-  --color-indigo-sky: #101a3d;
-  --color-violet-deep: #3b1e6e;
-  --color-magenta-dusk: #b03a73;
-  --color-ember: #e4622f;
-  --color-ember-hi: #f4a24b;
+  /* --- Ground -----------------------------------------------------------
+     Three layers, not one. Depth on this page comes from stacking these and
+     from hairlines, never from a heavy graphic or a drop shadow. */
+  --color-night: #06070a;
+  /* Raised surface: the confirmation, a field that is being filled. */
+  --color-night-soft: #0b0d12;
+  /* Lifted: a plate under the cursor. */
+  --color-night-lift: #12151c;
 
-  /* --- Action (the only red on the page) ------------------------------- */
-  --color-brand: #e20a17;
-  --color-brand-hi: #ff2b36;
+  /* --- Edges -----------------------------------------------------------
+     A hairline is this page's only border. Two weights, so a resting edge and
+     an active one are distinguishable without either becoming a line. */
+  --color-edge: rgb(255 255 255 / 0.08);
+  --color-edge-lit: rgb(255 255 255 / 0.18);
 
-  /* --- Chrome ---------------------------------------------------------- */
-  --color-chrome-hi: #f5f7fa;
-  --color-chrome-mid: #dfe4ec;
-  --color-chrome-lo: #97a0ad;
+  /* --- Action ----------------------------------------------------------
+     Sampled from the MEGA TEST DRIVE 6 lockup: #e81820 is the solid red of the
+     "Event" script. `deep` is that hue taken down far enough for white type to
+     sit on it at 5.9:1, and it brightens to the exact logo red on hover — the
+     only place the page raises its voice. `bright` is the same hue opened up for
+     small text on the dark ground, where #e81820 manages only 4.3:1. */
+  --color-accent: #e81820;
+  --color-accent-deep: #d0121a;
+  --color-accent-bright: #ff4d54;
 
-  /* --- Type ------------------------------------------------------------ */
+  /* --- Type ------------------------------------------------------------- */
   --font-display: "Montserrat", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
 
-  /* --- Motion ---------------------------------------------------------- */
-  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
-
-  --animate-sheen: sheen 9s ease-in-out infinite;
-  --animate-rise: rise 0.7s var(--ease-enter) both;
-  /* Transform-only, so the hero lockup paints instantly and never delays LCP. */
-  --animate-settle: settle 0.9s var(--ease-enter) both;
-}
-
-/* One sharp specular event against an almost-still page. */
-@keyframes sheen {
-  0%,
-  62% {
-    transform: translate3d(-130%, 0, 0);
-  }
-  76%,
-  100% {
-    transform: translate3d(130%, 0, 0);
-  }
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 16px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes settle {
-  from {
-    transform: scale(0.982);
-  }
-  to {
-    transform: scale(1);
-  }
+  /* --- Motion ----------------------------------------------------------
+     One curve for everything. Expo-out: leaves quickly, arrives softly. */
+  --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ==========================================================================
@@ -78,27 +58,36 @@
   *,
   *::before,
   *::after {
-    border-color: rgb(255 255 255 / 0.08);
+    border-color: var(--color-edge);
   }
 
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
     background-color: var(--color-night);
-    /* Native scrollbars, form controls and autofill match the palette. */
+    /* Native scrollbars, controls and autofill follow the palette. */
     color-scheme: dark;
   }
 
   body {
     background-color: var(--color-night);
-    color: rgb(255 255 255 / 0.92);
+    color: rgb(255 255 255 / 0.9);
     font-family: var(--font-sans);
-    /* Numbers change all over this page — never let them jitter. */
-    font-variant-numeric: tabular-nums;
+    /*
+     * Greyscale antialiasing, and here it is the right call: it thins glyphs,
+     * which is what light type on a dark ground wants. (On a white page it would
+     * make body copy look under-inked — the opposite problem.)
+     */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     overflow-x: hidden;
+  }
+
+  /* Dates, times and phone numbers all change on this page. Never let them jitter. */
+  time,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
   }
 
   h1,
@@ -112,26 +101,22 @@
   }
 
   ::selection {
-    background-color: rgb(226 10 23 / 0.85);
+    background-color: var(--color-accent);
     color: #fff;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-brand-hi);
-    outline-offset: 2px;
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
   }
 
-  input::placeholder {
-    color: rgb(255 255 255 / 0.26);
-  }
-
-  /* Kill Chrome's autofill wash, which destroys the glass surfaces. */
+  /* Chrome's autofill wash would put a white block over a dark field. */
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
     -webkit-text-fill-color: rgb(255 255 255 / 0.92);
-    -webkit-box-shadow: 0 0 0 1000px rgb(255 255 255 / 0.03) inset;
-    caret-color: rgb(255 255 255 / 0.92);
+    -webkit-box-shadow: 0 0 0 1000px var(--color-night) inset;
+    caret-color: var(--color-accent);
     transition: background-color 9999s ease-out 0s;
   }
 }
@@ -140,96 +125,82 @@
    Utilities
    ========================================================================== */
 
-/* Poster-derived brushed metal. */
-@utility text-chrome {
-  background-image: linear-gradient(
-    180deg,
-    var(--color-chrome-hi) 0%,
-    var(--color-chrome-mid) 46%,
-    var(--color-chrome-lo) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+/* Small caps label. The page's only decorative type treatment.
+   0.2em, not more: past that a Cyrillic label stops reading as a word. */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
-/* The incentive sentence: one solid near-white, no gradient.
-   It used to be top-lit warm metal like the figure below. On MEGA OPEN MIC,
-   which shares these files, that sentence came back from a Galaxy as "бүдэг"
-   twice — the second time after the ramp had already been brightened from a
-   #f2c79a foot to a cream one, i.e. after every line measured above 17.7:1.
-   Contrast was not what was wrong.
-   Text painted by clipping a gradient to the glyphs (`background-clip: text`
-   plus `color: transparent`) is composited through a glyph mask, and Chromium
-   drops LCD subpixel antialiasing on that path: the same letters come out
-   thinner and softer than when they are painted as a plain colour. On a phone
-   that softness reads as faint. This sentence sets three lines on every phone
-   from 280px up, so it is now a flat colour on the normal text path, and the
-   golden hour is carried by the figure alone — one line, where the effect is
-   worth its cost. */
-@utility text-dusk {
-  color: #fffaf3;
-}
-
-/* The figure that does the persuading: the same light, concentrated. */
-@utility text-ember-metal {
-  background-image: linear-gradient(
-    180deg,
-    #ffe2bd 0%,
-    var(--color-ember-hi) 52%,
-    var(--color-ember) 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* text-chrome and text-ember-metal paint their colour with a gradient clipped to
-   the glyphs, which means `color: transparent` is the real colour anywhere the
-   clip does not work — the text would not look faint, it would be gone. Every
-   engine we ship to supports it; this is for the proxy browsers and stripped
-   webviews we do not test on. */
-@supports not ((background-clip: text) or (-webkit-background-clip: text)) {
-  .text-chrome {
-    background-image: none;
-    color: #fff6ea;
-  }
-
-  .text-ember-metal {
-    background-image: none;
-    color: var(--color-ember-hi);
-  }
-}
-
-@utility glass {
-  background-color: rgb(255 255 255 / 0.05);
-  -webkit-backdrop-filter: blur(28px) saturate(140%);
-  backdrop-filter: blur(28px) saturate(140%);
-}
-
-/* Depth comes from a lit top edge, never from a drop shadow. */
-@utility edge-lit {
-  box-shadow: inset 0 1px 0 0 rgb(255 255 255 / 0.09);
-}
-
-@utility hairline-h {
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgb(255 255 255 / 0.12) 18%,
-    rgb(255 255 255 / 0.12) 82%,
-    transparent 100%
-  );
-}
-
-/* Fine grain over the large gradients — kills banding on wide dark screens. */
+/* Fine grain, at very low opacity, over the backdrop's radials. Without it a
+   soft ramp across 2000px of near-black shows every one of its steps as a band —
+   which is far more visible on a dark screen than on a light one. */
 @utility grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
   background-repeat: repeat;
 }
 
+/* Display type, at the sizes this page sets it: tight, and never letting a line
+   of Cyrillic caps drift apart. */
+@utility display-lg {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2rem, 4.6vw, 3.25rem);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+
+@utility display-md {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+}
+
 /* ==========================================================================
-   Reduced motion — the page must feel complete without a single animation.
+   The hero's entrance.
+
+   CSS, not JavaScript, and deliberately so. Every element in the hero starts at
+   `opacity: 0`, which means whatever brings it back is load-bearing: if that is
+   a JS animation loop, then a failed hydration, a thrown error, a bundle that
+   never arrives, or simply a tab that is not compositing frames all leave the
+   lockups permanently invisible. This was not hypothetical — it is exactly what
+   happened when the hero was built with framer-motion and measured in a
+   non-compositing tab.
+
+   A CSS animation cannot fail that way. It needs no bundle, it runs before
+   hydration, and `animation-fill-mode: both` holds the finished state. Under
+   `prefers-reduced-motion` the block at the foot of this file collapses the
+   duration, which lands every element on its `to` state — visible, unmoved.
+
+   The hero is a server component with no JavaScript of its own at all.
+   ========================================================================== */
+
+/* 10px and 450ms. Far enough to register as arriving, near enough that nothing
+   appears to fly in — and short enough that the last element in the stagger has
+   landed well inside a second. */
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-rise {
+  animation: hero-rise 0.45s var(--ease-enter) both;
+  animation-delay: var(--rise-delay, 0s);
+}
+
+/* ==========================================================================
+   Reduced motion — the page has to feel finished with every animation off.
    ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {

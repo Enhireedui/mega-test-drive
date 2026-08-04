@@ -9,11 +9,14 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.resolve(import.meta.dirname),
   images: {
     formats: ["image/avif", "image/webp"],
-    deviceSizes: [360, 420, 640, 828, 1080, 1200, 1440, 1920, 2048],
+    deviceSizes: [360, 420, 640, 828, 1080, 1200, 1440, 1920, 2048, 2560],
+    /* The brand marks are painted at 18–26px tall; nothing smaller is needed,
+       and 2560 covers the hero still on an ultrawide display. */
+    imageSizes: [64, 128, 180, 240, 320, 480],
     qualities: [75, 82],
   },
   experimental: {
-    optimizePackageImports: ["lucide-react", "framer-motion"],
+    optimizePackageImports: ["framer-motion"],
   },
   async headers() {
     return [

@@ -1,7 +1,7 @@
 import { eventConfig, isSlotClosed, slotKey } from "@/lib/config";
 import type { SlotAvailability, SlotStatus } from "@/types/registration";
 
-/** `"<dateId>|<timeId>"` → number of registrations already taken. */
+/** `"<dateId>|<timeId>"` → registrations already taken. */
 export type SlotCounts = Readonly<Record<string, number>>;
 
 export const AVAILABILITY_TAG = "availability";
@@ -15,14 +15,23 @@ function isSlotCounts(value: unknown): value is Record<string, number> {
 }
 
 /**
- * Accepts both `"<date>|<time>"` and bare `"<time>"` keys.
+ * Normalises the keys the endpoint returns to `"<date>|<time>"`.
  *
- * The sheet for a single-day event stores only a time, so the endpoint returns
- * bare times; those are attributed to the configured event date. Anything that
- * is neither is dropped rather than silently mis-attributed.
+ * Edition 5 ran on a single day, so its sheet stored only a time and the site
+ * attributed bare times to the one configured date. Edition 6 runs on two, and
+ * that shortcut is now a correctness hazard rather than a convenience: a bare
+ * "14:00" could belong to either Saturday or Sunday, and guessing would report
+ * one day as full while the other still had seats.
+ *
+ * So a bare time is accepted only while there is exactly one event date to
+ * attribute it to, and dropped otherwise. Dropping undercounts, which shows a
+ * slot as emptier than it is; the Apps Script re-counts under a document lock
+ * before every write, so an oversold slot is still refused at the point it
+ * matters. Mis-attributing, by contrast, would turn people away from a day that
+ * was open.
  */
 function normalizeCountKeys(raw: Record<string, number>): Record<string, number> {
-  const eventDate = eventConfig.dates[0]?.id;
+  const singleDate = eventConfig.dates.length === 1 ? eventConfig.dates[0]?.id : undefined;
   const normalized: Record<string, number> = {};
 
   for (const [key, value] of Object.entries(raw)) {
@@ -30,8 +39,8 @@ function normalizeCountKeys(raw: Record<string, number>): Record<string, number>
       normalized[key] = (normalized[key] ?? 0) + value;
       continue;
     }
-    if (!/^\d{2}:\d{2}$/.test(key) || !eventDate) continue;
-    const composite = slotKey(eventDate, key);
+    if (!singleDate || !/^\d{2}:\d{2}$/.test(key)) continue;
+    const composite = slotKey(singleDate, key);
     normalized[composite] = (normalized[composite] ?? 0) + value;
   }
 

@@ -1,93 +1,15 @@
 /**
- * Domain types for the MEGA TEST DRIVE 5 registration flow.
+ * Domain types for the MEGA TEST DRIVE 6 registration flow.
  * Shared by the client form, the server action and the availability reader.
  */
 
-/** A day the event is open for test drives. */
-export interface EventDate {
-  /** Stable identifier, also the value written to the sheet (e.g. "2026.07.04"). */
-  readonly id: string;
-  /** Display label (e.g. "2026.07.04"). */
-  readonly label: string;
-  /** Mongolian weekday label (e.g. "Бямба гараг"). */
-  readonly weekday: string;
-  /** ISO calendar date used for timestamp maths (e.g. "2026-07-04"). */
-  readonly iso: string;
-}
-
-/** A bookable start time. Slots are `slotDurationHours` long. */
-export interface EventTimeSlot {
-  /** Stable identifier / value written to the sheet (e.g. "11:00"). */
-  readonly id: string;
-  /** Display label (e.g. "11:00"). */
-  readonly label: string;
-}
-
-export interface EventVenue {
-  readonly name: string;
-  readonly hint: string;
-  /** External map URL. Empty string hides the link. */
-  readonly mapUrl: string;
-}
-
-export interface EventContact {
-  /** Display form, e.g. "7777 0000". Empty string hides the row. */
-  readonly phone: string;
-  readonly facebookUrl: string;
-  readonly instagramUrl: string;
-}
-
-/** Headline numbers reused across hero, highlights and metadata. */
-export interface EventStats {
-  readonly brandCount: number;
-  readonly modelCountLabel: string;
-  readonly luckyDrawGuests: number;
-}
-
-/**
- * The reason to register, set as the bridge between the title block and the
- * form. Split so the numeral can carry the emphasis on its own.
- */
-export interface EventIncentiveCopy {
-  readonly before: string;
-  /** The figure that does the persuading. */
-  readonly highlight: string;
-  readonly after: string;
-}
-
-/** The invitation, below the form. */
-export interface EventIntroCopy {
-  /** Supporting paragraphs, in order. */
-  readonly body: readonly string[];
-}
-
-export interface EventConfig {
-  readonly edition: number;
-  readonly title: string;
-  readonly distributor: string;
-  readonly distributorNote: string;
-  readonly siteUrl: string;
-  /** UTC offset of the venue, in hours (Ulaanbaatar = +8). */
-  readonly utcOffsetHours: number;
-  readonly dates: readonly EventDate[];
-  readonly timeSlots: readonly EventTimeSlot[];
-  readonly slotDurationHours: number;
-  /** Registration ceiling for a single date + time slot. */
-  readonly maxPerSlot: number;
-  /** Manually closed slots as `"<dateId>|<timeId>"`, regardless of capacity. */
-  readonly closedSlots: readonly string[];
-  readonly venue: EventVenue;
-  readonly contact: EventContact;
-  readonly brands: readonly string[];
-  readonly stats: EventStats;
-  readonly incentive: EventIncentiveCopy;
-  readonly intro: EventIntroCopy;
-}
-
 export type SlotStatus = "open" | "full" | "closed";
 
+/** One day × time cell, as the server last saw it. */
 export interface SlotAvailability {
+  /** Event date id, e.g. "2026.08.08". */
   readonly date: string;
+  /** Time slot id, e.g. "14:00". */
   readonly time: string;
   readonly remaining: number;
   readonly status: SlotStatus;

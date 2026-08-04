@@ -3,23 +3,28 @@
 import { useCallback, useEffect, useId, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 
-import { Button } from "@/components/Button";
+import { ActionButton } from "@/components/ui/ActionButton";
 import { DURATION, EASE_ENTER } from "@/lib/motion";
 
-interface SuccessModalProps {
+interface SuccessDialogProps {
   open: boolean;
   onClose: () => void;
+  /** What was booked, restated once so it can be checked at a glance. */
+  summary: string;
 }
 
 const FOCUSABLE = 'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])';
 
 /**
- * The confirmation: a tick, one sentence and the way out.
+ * The confirmation.
  *
- * It does not read back what was just typed — the visitor typed it, and rows of
- * their own data are the least useful thing to hand them at this moment.
+ * A drawn tick, one sentence, the day and time that were taken, and the way
+ * out. It restates the slot and nothing else: the visitor typed their own name
+ * and number a moment ago, and reading those back is the least useful thing to
+ * hand them here — but the slot is the one thing they chose from a list and may
+ * genuinely want to re-read.
  */
-export function SuccessModal({ open, onClose }: SuccessModalProps) {
+export function SuccessDialog({ open, onClose, summary }: SuccessDialogProps) {
   const rawId = useId();
   const titleId = `success-${rawId}-title`;
 
@@ -67,7 +72,7 @@ export function SuccessModal({ open, onClose }: SuccessModalProps) {
     if (scrollbarWidth > 0) body.style.paddingRight = `${scrollbarWidth}px`;
 
     document.addEventListener("keydown", handleKeyDown);
-    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 140);
+    const focusTimer = window.setTimeout(() => closeButtonRef.current?.focus(), 160);
 
     return () => {
       window.clearTimeout(focusTimer);
@@ -81,7 +86,7 @@ export function SuccessModal({ open, onClose }: SuccessModalProps) {
   return (
     <AnimatePresence>
       {open ? (
-        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-4 pt-14 sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center px-4 pb-4 pt-16 sm:items-center sm:p-6">
           <motion.div
             aria-hidden="true"
             initial={{ opacity: 0 }}
@@ -89,7 +94,7 @@ export function SuccessModal({ open, onClose }: SuccessModalProps) {
             exit={{ opacity: 0 }}
             transition={{ duration: DURATION.state, ease: EASE_ENTER }}
             onClick={onClose}
-            className="absolute inset-0 bg-abyss/80 backdrop-blur-xl"
+            className="absolute inset-0 bg-night/80 backdrop-blur-md"
           />
 
           <motion.div
@@ -97,70 +102,60 @@ export function SuccessModal({ open, onClose }: SuccessModalProps) {
             role="dialog"
             aria-modal="true"
             aria-labelledby={titleId}
-            initial={{ opacity: 0, y: 26, scale: 0.975 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 14, scale: 0.985, transition: { duration: DURATION.micro } }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12, transition: { duration: DURATION.micro } }}
             transition={{ duration: DURATION.compose, ease: EASE_ENTER }}
-            className="glass relative max-h-[calc(100svh-4.5rem)] w-full max-w-[23rem] overflow-y-auto overflow-x-hidden overscroll-contain rounded-[1.75rem] border border-white/12 px-6 pb-6 pt-9 text-center edge-lit sm:px-7 sm:pb-7 sm:pt-10"
+            /* A raised surface, not a white card: one step up from the page,
+               a hairline, and a shadow deep enough to lift it off the backdrop
+               without becoming a visible box. */
+            className="relative max-h-[calc(100svh-5rem)] w-full max-w-[26rem] overflow-y-auto overscroll-contain rounded-3xl border border-edge bg-night-soft px-8 pb-8 pt-10 shadow-[0_48px_120px_-32px_rgb(0_0_0_/_0.8)] sm:pb-10 sm:pt-12"
           >
-            {/* Warm bloom, from behind and above — the page's only light source. */}
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute -top-24 left-1/2 h-56 w-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgb(226_10_23_/_0.38),transparent_68%)] blur-2xl"
-            />
-            {/* Specular sweep across the top edge as the card lands. */}
-            <motion.span
-              aria-hidden="true"
-              initial={{ x: "-120%" }}
-              animate={{ x: "120%" }}
-              transition={{ duration: 1.1, ease: EASE_ENTER, delay: 0.22 }}
-              className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent"
-            />
-
-            <div className="relative mx-auto grid size-[3.25rem] place-items-center">
+            <div className="relative size-11">
               <motion.span
                 aria-hidden="true"
-                initial={{ scale: 0.6, opacity: 0 }}
+                initial={{ scale: 0.7, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: DURATION.compose, ease: EASE_ENTER, delay: 0.06 }}
-                className="absolute inset-0 rounded-full border border-brand/45 bg-brand/12"
+                transition={{ duration: DURATION.state, ease: EASE_ENTER, delay: 0.05 }}
+                className="absolute inset-0 rounded-full bg-accent"
               />
               <svg
                 aria-hidden="true"
                 viewBox="0 0 24 24"
                 fill="none"
-                className="relative size-6 text-brand-hi"
+                className="absolute inset-0 size-11 p-3 text-white"
               >
                 <motion.path
                   d="M4.5 12.6 9.4 17.5 19.5 7"
                   stroke="currentColor"
-                  strokeWidth={2.25}
+                  strokeWidth={2.5}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   initial={{ pathLength: 0 }}
                   animate={{ pathLength: 1 }}
-                  transition={{ duration: DURATION.compose, ease: EASE_ENTER, delay: 0.2 }}
+                  transition={{ duration: 0.5, ease: EASE_ENTER, delay: 0.22 }}
                 />
               </svg>
             </div>
 
-            <h2
-              id={titleId}
-              className="mx-auto mt-6 max-w-[16rem] text-balance font-display text-[1.25rem] font-semibold leading-[1.35] tracking-[-0.01em] text-chrome"
-            >
-              Амжилттай бүртгэгдлээ.
+            <h2 id={titleId} className="display-md mt-8 text-white">
+              Бүртгэл баталгаажлаа.
             </h2>
 
-            <Button
+            <p data-numeric="" className="mt-4 text-[0.9375rem] leading-relaxed text-white/60">
+              {summary}
+            </p>
+
+            <ActionButton
               ref={closeButtonRef}
-              variant="ghost"
+              variant="outlined"
               size="md"
               fullWidth
               onClick={onClose}
-              className="mt-8"
+              className="mt-9"
             >
               Хаах
-            </Button>
+            </ActionButton>
           </motion.div>
         </div>
       ) : null}
