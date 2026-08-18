@@ -1,5 +1,5 @@
 {
-  "name": "sain-motors-mega-test-drive-6",
+  "name": "sain-motors-mega-event-test-drive-7",
   "version": "1.0.0",
   "private": true,
   "engines": {
@@ -15,7 +15,6 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
-    "framer-motion": "^12.42.2",
     "next": "^16.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",

@@ -3,42 +3,34 @@ import Image from "next/image";
 import { eventConfig } from "@/lib/config";
 
 /**
- * The sign-off. The last thing on the page, and all of it.
+ * The colophon.
  *
- * The sponsor's mark and one line naming them. No date, no venue, no copyright,
- * no second lockup — the hero states the facts one screen above this, and a footer
- * that repeats them is just a second chance to read the same sentence.
+ * A field record is signed at the foot, so this is set as one: the mark and who
+ * they are, and nothing else. Nothing is repeated from above — the date, the hours
+ * and the venue are each stated once, in the table, and a footer restating them
+ * would be the same sentence twice on a page this short.
  *
- * This is now the *only* place the sponsor appears. It used to be credited at the
- * top of the hero as well, which on a page this short was the same credit twice.
- *
- * The sign-off names them "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР" — official distributor —
- * which is the standing relationship, not the poster credit. The hero opens with
- * the poster's own words ("ЕРӨНХИЙ ИВЭЭН ТЭТГЭГЧ"); the footer closes with what
- * the company is. Hence two fields on the presenter rather than one.
+ * The map link is not down here either. It belongs beside the place it points at,
+ * in the masthead, where someone is actually wondering where the pass is — a
+ * colophon is the last place anyone looks for directions.
  */
 export function SiteFooter() {
   const { presenter } = eventConfig;
 
   return (
-    <footer className="border-t border-edge px-6 py-16 text-center sm:py-20">
-      <Image
-        src={presenter.logo}
-        alt={presenter.name}
-        width={presenter.logoWidth}
-        height={presenter.logoHeight}
-        loading="lazy"
-        sizes="220px"
-        className="mx-auto h-6 w-auto sm:h-7"
-      />
-
-      <p className="eyebrow mt-6 text-white/55">
-        {presenter.signOffRole}
-        <span aria-hidden="true" className="mx-2 text-white/25">
-          ·
-        </span>
-        {presenter.name}
-      </p>
+    <footer className="px-6 pb-12 pt-10 sm:px-10 lg:px-14 lg:pb-16">
+      <div className="flex items-center gap-5 sm:gap-6">
+        <Image
+          src={presenter.logo}
+          alt={presenter.name}
+          width={presenter.logoWidth}
+          height={presenter.logoHeight}
+          loading="lazy"
+          sizes="150px"
+          className="h-4 w-auto shrink-0"
+        />
+        <p className="ref text-sage">{presenter.role}</p>
+      </div>
     </footer>
   );
 }

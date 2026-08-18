@@ -1,32 +1,35 @@
 /**
- * Asset pipeline for MEGA TEST DRIVE 6.
+ * Asset pipeline for MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION.
  *
- * The artwork we are given is print-scale and composed for dark surfaces:
- *  - "MEGA logo.png" / "Sain motors logo.png" / "Shiliin bogd logo.png"
- *    are white-and-red lockups on transparency, 7–9k px wide.
- *  - "All brand logo.png" is a single 11811px strip holding all ten
- *    participating marks in two rows.
- *  - "Shiliin Bogd undsen poster.tif" is a 150MB layered poster whose middle
- *    third is the only fleet photography that exists for this edition.
+ * The artwork supplied for this edition is four files in `../testdriver7`:
  *
- * None of that can be shipped as-is, and none of it can be re-cut by hand
- * repeatably. This script is the reproducible step between the designer's
- * files and /public:
+ *  - "Logo-MT7-OFF.png"      the campaign lockup — MEGA Event / TEST DRIVE 7 /
+ *                            OFF-ROAD EDITION — chrome-and-red on transparency,
+ *                            1845×731. This is the page's signature and is never
+ *                            rebuilt as type.
+ *  - "Logo-MT7-OFF-2.png"    the SAIN MOTORS lockup on transparency, with
+ *                            "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР" set above the wordmark.
+ *  - "MEGA OFF-ROAD undsen poster 1x1 ratio.png"      3543², the feed poster.
+ *  - "MEGA OFF-ROAD undsen poster story ratio.png"    2362×4198, the story cut.
  *
- *   1. slices the brand strip into ten separate marks, found from the alpha
- *      channel rather than from hardcoded pixel offsets,
- *   2. re-inks those marks from white to near-black so they can sit on the
- *      white page (the red in the SAIN / Шилийн Богд / MEGA lockups is
- *      preserved, so they stay usable either way),
- *   3. crops the poster's photographic band out from between its two blocks of
- *      typography, giving a cinematic still with no baked-in text,
- *   4. trims and downscales everything to what the page actually paints.
+ * The page itself carries no photography — the campaign lockup is its whole visual
+ * argument — so all this script produces is the two lockups and one social card.
+ *
+ * The posters are a vertical sandwich: sponsor lockup, campaign lockup, the fleet on
+ * grass, then a black bar carrying the date, place and hours. Three of those four
+ * layers are typography the page sets as real text, so neither poster can be shipped
+ * as a hero. Only the square one is kept, whole, as the social card — a link preview
+ * is the one place baked-in type is the right answer.
+ *
+ * ("MEGA OFF-ROAD Page cover.png" is also supplied and is deliberately unused. It was
+ * placed at the top of the page and measured: at 2.68:1 it pushed the submit button
+ * below the fold at every width, and cropping it to a band was cut on request.)
  *
  * Run:  node scripts/prepare-assets.mjs [--analyze]
- * Source folder override:  MTD6_SOURCE_DIR="D:/path/to/art" node scripts/...
+ * Source override:  MTD7_SOURCE_DIR="D:/path/to/art" node scripts/prepare-assets.mjs
  *
- * Outputs are committed, so this only needs re-running when the artwork
- * changes. `--analyze` prints the measurements it derives without writing.
+ * Outputs are committed, so this only re-runs when the artwork changes.
+ * `--analyze` prints every measurement it derives and writes nothing.
  */
 
 import { mkdir, readdir } from "node:fs/promises";
@@ -35,41 +38,19 @@ import path from "node:path";
 import sharp from "sharp";
 
 const SOURCE_DIR =
-  process.env.MTD6_SOURCE_DIR ??
-  path.resolve(import.meta.dirname, "..", "..", "testDrive6");
+  process.env.MTD7_SOURCE_DIR ?? path.resolve(import.meta.dirname, "..", "..", "testdriver7");
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "..", "public");
 const ANALYZE = process.argv.includes("--analyze");
 
-/** Big TIFFs blow past libvips' default pixel ceiling. */
+/** The posters are 14MP and 10MP; libvips' default ceiling is lower. */
 const OPEN = { limitInputPixels: false, unlimited: true };
 
 const SOURCES = {
-  mega: "MEGA logo.png",
-  sain: "Sain motors logo.png",
-  shiliinBogd: "Shiliin bogd logo.png",
-  brandStrip: "All brand logo.png",
-  poster: "Shiliin Bogd undsen poster.tif",
+  lockup: "Logo-MT7-OFF.png",
+  sain: "Logo-MT7-OFF-2.png",
+  posterSquare: "MEGA OFF-ROAD undsen poster 1x1 ratio.png",
 };
-
-/**
- * Reading order of "All brand logo.png": five marks on the upper row, five on
- * the lower. Slice boundaries are measured, not listed — only the names and
- * the count are knowledge this file has to hold.
- */
-const BRAND_ROWS = [
-  ["jetour", "soueast", "chery", "byd", "riddara"],
-  ["aito", "212", "bestune", "rely", "maxus"],
-];
-
-/** Darkest ink the re-inker maps pure white onto. Not #000 — that reads harsh. */
-const INK_FLOOR = 12;
-
-/** Where the achromatic/chromatic split falls. Antialiased white edges sit near 0. */
-const CHROMA_CUTOFF = 45;
-
-/** The red the lockups keep once re-inked, deepened just enough to hold on white. */
-const INK_RED = [193, 12, 24];
 
 const log = (...parts) => console.log(...parts);
 
@@ -84,8 +65,10 @@ async function ensureDir(dir) {
 /* ── measurement ─────────────────────────────────────────────────────────── */
 
 /**
- * Alpha-channel profile of an image: how much ink each row and each column
- * carries. Everything else here is derived from these two arrays.
+ * How much ink each row and column of an image carries, read off the alpha
+ * channel. Every crop below is derived from these two arrays rather than from
+ * pixel offsets typed in by hand, so re-exporting the artwork at another scale
+ * does not silently move a crop.
  */
 async function alphaProfile(file) {
   const { data, info } = await sharp(file, OPEN)
@@ -110,10 +93,7 @@ async function alphaProfile(file) {
   return { width, height, rows, columns };
 }
 
-/**
- * Runs of consecutive indices whose weight clears `threshold`.
- * Used to find the strip's two rows, and each row's letterforms.
- */
+/** Runs of consecutive indices whose weight clears `threshold`. */
 function occupiedRuns(weights, threshold) {
   const runs = [];
   let start = -1;
@@ -131,51 +111,6 @@ function occupiedRuns(weights, threshold) {
   return runs;
 }
 
-/**
- * Splits one row of the strip into exactly `count` marks.
- *
- * A gap-width threshold cannot do this: AITO is set with letterspacing as wide
- * as the space between two neighbouring brands, so any single cutoff either
- * splits AITO into four marks or merges RELY into MAXUS. Since the number of
- * marks per row is known, take the `count - 1` widest gaps instead — that is
- * scale-free and cannot miscount.
- */
-function splitIntoMarks(columns, from, to, count, floor) {
-  const runs = occupiedRuns(columns.subarray(from, to + 1), floor).map((run) => ({
-    start: run.start + from,
-    end: run.end + from,
-  }));
-
-  if (runs.length < count) {
-    throw new Error(`found only ${runs.length} ink runs, need at least ${count}`);
-  }
-
-  const gaps = runs
-    .slice(1)
-    .map((run, index) => ({ index: index + 1, width: run.start - runs[index].end }))
-    .sort((a, b) => b.width - a.width);
-
-  const cuts = new Set(gaps.slice(0, count - 1).map((gap) => gap.index));
-
-  const marks = [];
-  let current = { start: runs[0].start, end: runs[0].end };
-
-  for (let i = 1; i < runs.length; i += 1) {
-    if (cuts.has(i)) {
-      marks.push(current);
-      current = { start: runs[i].start, end: runs[i].end };
-    } else {
-      current.end = runs[i].end;
-    }
-  }
-  marks.push(current);
-
-  const narrowestSplit = gaps[count - 2]?.width ?? 0;
-  const widestKept = gaps[count - 1]?.width ?? 0;
-
-  return { marks, narrowestSplit, widestKept };
-}
-
 /** Tight bounding box of everything non-transparent. */
 function alphaBox({ width, height, rows, columns }) {
   const rowRuns = occupiedRuns(rows, 0);
@@ -188,71 +123,25 @@ function alphaBox({ width, height, rows, columns }) {
   return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-/* ── re-inking ───────────────────────────────────────────────────────────── */
+/* ── lockups ─────────────────────────────────────────────────────────────── */
 
 /**
- * White artwork → dark artwork, for the marks that have to live on the white
- * page. Achromatic pixels are inverted into [INK_FLOOR, 255]; anything with
- * real chroma is the brand red and is set to INK_RED rather than inverted,
- * because inverting red yields cyan.
+ * The two lockups, kept exactly as drawn — chrome, white and red on
+ * transparency. Both were composed for a dark ground, which is the only ground
+ * this page has, so nothing is re-inked and no effect is added. They are trimmed
+ * to their own ink and downscaled to what the page actually paints, and that is
+ * the whole treatment.
  *
- * Alpha is untouched, so antialiased edges still composite cleanly.
- */
-async function reInk(file, { width }) {
-  const pipeline = sharp(file, OPEN).ensureAlpha();
-  const { data, info } = await pipeline.raw().toBuffer({ resolveWithObject: true });
-
-  let chromaticPixels = 0;
-
-  for (let i = 0; i < data.length; i += 4) {
-    if (data[i + 3] === 0) continue;
-
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const chroma = Math.max(r, g, b) - Math.min(r, g, b);
-
-    if (chroma > CHROMA_CUTOFF) {
-      chromaticPixels += 1;
-      [data[i], data[i + 1], data[i + 2]] = INK_RED;
-      continue;
-    }
-
-    const value = (r + g + b) / 3;
-    const ink = Math.round(INK_FLOOR + ((255 - value) * (255 - INK_FLOOR)) / 255);
-    data[i] = ink;
-    data[i + 1] = ink;
-    data[i + 2] = ink;
-  }
-
-  const inked = sharp(data, {
-    raw: { width: info.width, height: info.height, channels: 4 },
-  });
-
-  return {
-    pipeline: width ? inked.resize({ width, withoutEnlargement: true }) : inked,
-    chromaticPixels,
-  };
-}
-
-/* ── steps ───────────────────────────────────────────────────────────────── */
-
-/**
- * The three lockups, kept exactly as drawn — white and red on transparency.
- * They are painted on the dark hero and the dark footer, which is what the
- * artwork was composed for.
- *
- * `dropLeadingBand` cuts the topmost band of ink off a lockup. The SAIN MOTORS
- * artwork carries "ЕРӨНХИЙ ИВЭЭН ТЭТГЭГЧ" above the wordmark as a hairline
- * outline; at the size a sponsor credit is actually shown that line collapses
- * into grey mush, so it is removed here and set as real letterspaced type
+ * `dropLeadingBand` removes the topmost band of ink from a lockup. The SAIN
+ * MOTORS artwork carries "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР" above the wordmark as a
+ * hairline; at the size a distributor credit is shown that line collapses into
+ * grey mush, so it comes off here and the page sets it as real letterspaced type
  * instead. The wordmark keeps its own proportions either way.
  */
 async function buildLockups() {
   const targets = [
-    { key: "mega", out: "brand/mega-test-drive-6.png", width: 1800 },
+    { key: "lockup", out: "brand/mega-test-drive-7.png", width: 1800 },
     { key: "sain", out: "brand/sain-motors.png", width: 900, dropLeadingBand: true },
-    { key: "shiliinBogd", out: "brand/shiliin-bogd.png", width: 1200 },
   ];
 
   for (const { key, out, width, dropLeadingBand } of targets) {
@@ -263,10 +152,9 @@ async function buildLockups() {
     if (dropLeadingBand) {
       /*
        * Bands are runs of inked rows separated by clear space. Two guards keep
-       * this from latching onto the wrong thing: the ink threshold is relative
-       * to the heaviest row so it survives any export scale, and bands thinner
-       * than 1% of the image are discarded as edge noise — the source has a few
-       * near-empty rows along its top border that are not type at all.
+       * this off the wrong thing: the ink threshold is a fraction of the
+       * heaviest row, so it survives any export scale, and bands under 1% of the
+       * image height are discarded as border noise rather than type.
        */
       const inkFloor = Math.max(...profile.rows) * 0.02;
       const minBandHeight = profile.height * 0.01;
@@ -279,8 +167,7 @@ async function buildLockups() {
       }
 
       log(
-        `  ${SOURCES[key]}  bands: ` +
-          bands.map((b) => `${b.start}–${b.end}`).join(", ") +
+        `  ${SOURCES[key]}  bands: ${bands.map((b) => `${b.start}–${b.end}`).join(", ")}` +
           `  →  dropping the first`,
       );
       const wordmarkTop = bands[1].start;
@@ -302,166 +189,27 @@ async function buildLockups() {
   }
 }
 
-/**
- * The ten participating marks, cut out of the single strip and re-inked for
- * the white brand wall.
- */
-async function buildBrandMarks() {
-  const file = src("brandStrip");
-  const profile = await alphaProfile(file);
-
-  /* Thresholds as a fraction of the heaviest row/column, so they hold at any
-     export scale. Low, because these marks are thin outlines. */
-  const rowFloor = Math.max(...profile.rows) * 0.02;
-  const rowRuns = occupiedRuns(profile.rows, rowFloor);
-
-  if (rowRuns.length !== BRAND_ROWS.length) {
-    throw new Error(`expected ${BRAND_ROWS.length} rows in the brand strip, found ${rowRuns.length}`);
-  }
-
-  log(`  ${SOURCES.brandStrip}  ${profile.width}×${profile.height}`);
-  await ensureDir(path.join(PUBLIC_DIR, "brands"));
-
-  for (const [rowIndex, names] of BRAND_ROWS.entries()) {
-    const { start: top, end: bottom } = rowRuns[rowIndex];
-
-    /* Re-profile columns for this row alone — the two rows do not share
-       column occupancy, and measuring both together merges their gaps. */
-    const band = await alphaProfile(
-      await sharp(file, OPEN)
-        .extract({ left: 0, top, width: profile.width, height: bottom - top + 1 })
-        .png()
-        .toBuffer(),
-    );
-
-    const columnFloor = Math.max(...band.columns) * 0.015;
-    const { marks, narrowestSplit, widestKept } = splitIntoMarks(
-      band.columns,
-      0,
-      band.width - 1,
-      names.length,
-      columnFloor,
-    );
-
-    log(
-      `  row ${rowIndex + 1}: y ${top}–${bottom}` +
-        `  ·  split on gaps ≥${narrowestSplit}px, kept gaps ≤${widestKept}px`,
-    );
-
-    for (const [markIndex, name] of names.entries()) {
-      const { start, end } = marks[markIndex];
-      const region = {
-        left: start,
-        top,
-        width: end - start + 1,
-        height: bottom - top + 1,
-      };
-
-      const cut = await sharp(file, OPEN).extract(region).png().toBuffer();
-      const cutBox = alphaBox(await alphaProfile(cut));
-      const tight = await sharp(cut).extract(cutBox).png().toBuffer();
-
-      const { pipeline, chromaticPixels } = await reInk(tight, { width: 560 });
-      log(
-        `    ${name.padEnd(9)} x ${String(start).padStart(5)}–${String(end).padEnd(5)}` +
-          `  ${cutBox.width}×${cutBox.height}` +
-          (chromaticPixels > 0 ? `  (${chromaticPixels} coloured px kept red)` : ""),
-      );
-
-      if (ANALYZE) continue;
-      await pipeline
-        .png({ compressionLevel: 9, palette: false })
-        .toFile(path.join(PUBLIC_DIR, "brands", `${name}.png`));
-    }
-  }
-}
+/* ── the social card ────────────────────────────────────────────────────── */
 
 /**
- * Rows carrying bright, saturated red.
+ * The whole poster, for social cards only.
  *
- * That is the poster's display typography — "Moto Festival" above the fleet and
- * the "Event" script below it. The sky behind the mountains is red too, but it
- * is a dark wash: the brightness floor separates the two, so this finds type
- * and not sky.
+ * The one place its baked-in typography is an asset rather than a liability: a
+ * link preview is a single flat image with no room for real text. It is never
+ * painted on the page.
+ *
+ * Earlier editions also cut a photographic band out from between the poster's two
+ * blocks of red typography, to use as the page's hero ground. That is gone — the
+ * page carries no photography at all now, so this is the only bitmap left that has
+ * a vehicle in it.
  */
-async function brightRedRows(file) {
-  const { data, info } = await sharp(file, OPEN).raw().toBuffer({ resolveWithObject: true });
-  const { width, height, channels } = info;
-  const counts = new Int32Array(height);
-
-  for (let y = 0; y < height; y += 1) {
-    const rowStart = y * width * channels;
-    let hits = 0;
-    for (let x = 0; x < width; x += 1) {
-      const i = rowStart + x * channels;
-      const r = data[i];
-      if (r > 170 && r - Math.max(data[i + 1], data[i + 2]) > 110) hits += 1;
-    }
-    counts[y] = hits;
-  }
-
-  return { width, height, counts };
-}
-
-/**
- * Photography out of the poster.
- *
- * The poster is a vertical stack: sponsor lockup, festival title, then the
- * fleet on its reflective ground, then the MEGA lockup, brand names and
- * logistics. Only the middle band is usable on the site — everything else is
- * typography that would be duplicated by real text, at the wrong size, in a
- * language we cannot restyle.
- *
- * So the band is *measured*: it runs from below the last row of the festival
- * title to above the first row of the MEGA lockup, both located by their red.
- * A margin absorbs the glow and antialiasing around those glyphs, which carry
- * no saturation of their own but would still show as a smear along the edge.
- */
-async function buildPhotography() {
-  const file = src("poster");
-  const { width, height, counts } = await brightRedRows(file);
-  const midpoint = Math.floor(height / 2);
-
-  let titleEnd = -1;
-  for (let y = 0; y < midpoint; y += 1) if (counts[y] > 0) titleEnd = y;
-
-  let lockupStart = -1;
-  for (let y = midpoint; y < height; y += 1) {
-    if (counts[y] > 0) {
-      lockupStart = y;
-      break;
-    }
-  }
-
-  if (titleEnd === -1 || lockupStart === -1) {
-    throw new Error("could not locate the poster's red typography blocks");
-  }
-
-  /* ~0.6% of the poster height. Enough to clear the halo, small enough to keep
-     the mountain ridge and the foreground reflection. */
-  const margin = Math.round(height * 0.006);
-  const top = titleEnd + margin;
-  const bottom = lockupStart - margin;
-
-  const band = { left: 0, top, width, height: bottom - top };
-  log(
-    `  ${SOURCES.poster}  ${width}×${height}` +
-      `\n  red type: title ends y ${titleEnd}, lockup starts y ${lockupStart}, margin ${margin}px` +
-      `\n  →  fleet band y ${top}–${bottom} (${band.width}×${band.height}, ` +
-      `${(band.width / band.height).toFixed(2)}:1)`,
-  );
+async function buildSocialCard() {
+  const file = src("posterSquare");
+  const { width, height } = await sharp(file, OPEN).metadata();
+  log(`  ${SOURCES.posterSquare}  ${width}x${height}  ->  poster.jpg 1200px`);
   if (ANALYZE) return;
 
   await ensureDir(path.join(PUBLIC_DIR, "event"));
-
-  await sharp(file, OPEN)
-    .extract(band)
-    .resize({ width: 2400, withoutEnlargement: true })
-    .jpeg({ quality: 84, chromaSubsampling: "4:4:4", mozjpeg: true })
-    .toFile(path.join(PUBLIC_DIR, "event", "fleet.jpg"));
-
-  /* The whole poster, for social cards — the one place the baked-in
-     typography is an asset rather than a liability. */
   await sharp(file, OPEN)
     .resize({ width: 1200, withoutEnlargement: true })
     .jpeg({ quality: 82, mozjpeg: true })
@@ -481,10 +229,8 @@ async function main() {
   log(ANALYZE ? "\nmeasuring only (--analyze)\n" : "");
   log("lockups");
   await buildLockups();
-  log("\nbrand marks");
-  await buildBrandMarks();
-  log("\nphotography");
-  await buildPhotography();
+  log("\nsocial card");
+  await buildSocialCard();
   log(ANALYZE ? "\nnothing written." : "\ndone.");
 }
 

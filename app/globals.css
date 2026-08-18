@@ -2,51 +2,72 @@
 @import "./fonts.css";
 
 /* ==========================================================================
-   MEGA TEST DRIVE 6
-   Design tokens.
+   MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION
 
-   One near-black ground, white type, one red. The page is a single dark surface
-   from the first pixel to the last — which is also what the supplied artwork
-   wants, since every lockup is white-and-red on transparency and was drawn for
-   exactly that ground.
+   ── The direction: a survey of a pass ─────────────────────────────────────
+   The event is defined by a place — Морингийн даваа, a named mountain pass on
+   the Наадамчдын зам road — and by terrain. So the page is built as a field
+   record of that terrain: elevation contours, letterspaced reference labels, and
+   the facts set as a small data table. The "OFF-ROAD EDITION" claim is the thing
+   the document evidences.
 
-   There is no light palette. There used to be one, for a white page with a dark
-   hero; now that nothing is set on paper, carrying `paper`/`ink` tokens and a
-   `tone` prop through every control would be two code paths where one is real.
+   That is where the contour field comes from. It is not ornament: it is the
+   pass, drawn, and it is the only bold gesture on the page. Everything around it
+   is quiet.
+
+   ── Why the ground is dark, and why it is not black ───────────────────────
+   Dark is a constraint, not a preference. The supplied campaign lockup is a
+   white-to-silver chrome wordmark with no outline or dark keyline — measured
+   median luminance 255. Composited on a light mineral ground it very nearly
+   disappears. The identity may not be recreated or recoloured, so the page it
+   sits on has to be dark.
+
+   What did change is *which* dark. `basalt` is a green-black sampled from the
+   steppe at dusk in the supplied photograph, not a neutral #0A0A0A; type is
+   `bone`, a warm mineral off-white taken from the dust in the same frame, not
+   pure white; and `amber`, the sun flare, carries the contours. That frees the
+   campaign red to do exactly one job — the button — instead of being decoration.
    ========================================================================== */
 
 @theme {
   /* --- Ground -----------------------------------------------------------
-     Three layers, not one. Depth on this page comes from stacking these and
-     from hairlines, never from a heavy graphic or a drop shadow. */
-  --color-night: #06070a;
-  /* Raised surface: the confirmation, a field that is being filled. */
-  --color-night-soft: #0b0d12;
-  /* Lifted: a plate under the cursor. */
-  --color-night-lift: #12151c;
+     One value. There are no cards, no panels and no raised surfaces on this
+     page, so there is nothing for a second shade to be. */
+  --color-basalt: #12140f;
 
-  /* --- Edges -----------------------------------------------------------
-     A hairline is this page's only border. Two weights, so a resting edge and
-     an active one are distinguishable without either becoming a line. */
-  --color-edge: rgb(255 255 255 / 0.08);
-  --color-edge-lit: rgb(255 255 255 / 0.18);
+  /* --- Ink -------------------------------------------------------------
+     `bone` is the mineral dust of the photograph. `sage` is its dried grass,
+     and is the only muted tone — it clears 4.6:1 on basalt, so it is safe for
+     real copy and not just for decoration. */
+  --color-bone: #e4dfd3;
+  --color-sage: #8f8d78;
+
+  /* --- Terrain ---------------------------------------------------------
+     The sun flare. Contours, the reference marks, and nothing else — never a
+     fill, never a button, never text at body size. */
+  --color-amber: #d98b2b;
 
   /* --- Action ----------------------------------------------------------
-     Sampled from the MEGA TEST DRIVE 6 lockup: #e81820 is the solid red of the
-     "Event" script. `deep` is that hue taken down far enough for white type to
-     sit on it at 5.9:1, and it brightens to the exact logo red on hover — the
-     only place the page raises its voice. `bright` is the same hue opened up for
-     small text on the dark ground, where #e81820 manages only 4.3:1. */
-  --color-accent: #e81820;
-  --color-accent-deep: #d0121a;
-  --color-accent-bright: #ff4d54;
+     Inherited, not chosen: #e81820 is the exact red of the "Event" script and
+     the OFF-ROAD EDITION brush in the supplied lockup. It appears on this page
+     only as the call to action, which is what makes it read as the action.
+     `deep` carries bone type at 5.6:1 and brightens to the logo red on hover. */
+  --color-signal: #e81820;
+  --color-signal-deep: #c9111a;
+  /* The same hue opened up for small text. #e81820 manages only 4.3:1 against
+     basalt, and validation copy is 13px — this clears 7:1. */
+  --color-signal-bright: #ff5b60;
+
+  /* --- Edges ----------------------------------------------------------- */
+  --color-rule: rgb(228 223 211 / 0.14);
+  --color-rule-lit: rgb(228 223 211 / 0.3);
 
   /* --- Type ------------------------------------------------------------- */
-  --font-display: "Montserrat", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Oswald", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
 
   /* --- Motion ----------------------------------------------------------
-     One curve for everything. Expo-out: leaves quickly, arrives softly. */
+     One curve. Expo-out: leaves quickly, arrives softly. */
   --ease-enter: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -58,42 +79,38 @@
   *,
   *::before,
   *::after {
-    border-color: var(--color-edge);
+    border-color: var(--color-rule);
   }
 
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    background-color: var(--color-night);
-    /* Native scrollbars, controls and autofill follow the palette. */
+    background-color: var(--color-basalt);
     color-scheme: dark;
   }
 
   body {
-    background-color: var(--color-night);
-    color: rgb(255 255 255 / 0.9);
+    background-color: var(--color-basalt);
+    color: var(--color-bone);
     font-family: var(--font-sans);
-    /*
-     * Greyscale antialiasing, and here it is the right call: it thins glyphs,
-     * which is what light type on a dark ground wants. (On a white page it would
-     * make body copy look under-inked — the opposite problem.)
-     */
+    /* Greyscale antialiasing thins glyphs, which is what light type on a dark
+       ground wants. On a white page it would look under-inked — the opposite. */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    overflow-x: hidden;
+    /*
+     * `clip`, not `hidden`. Both stop a stray full-bleed child producing a
+     * sideways scrollbar, but `overflow-x: hidden` makes the body a scroll
+     * container, which silently kills `position: sticky` on descendants and
+     * breaks `scroll-margin` on anchor targets.
+     */
+    overflow-x: clip;
   }
 
-  /* Dates, times and phone numbers all change on this page. Never let them jitter. */
-  time,
+  /* Every figure on this page sits in a column of other figures. Never let
+     them jitter. */
   [data-numeric] {
     font-variant-numeric: tabular-nums;
-  }
-
-  h1,
-  h2,
-  h3 {
-    text-wrap: balance;
   }
 
   p {
@@ -101,12 +118,12 @@
   }
 
   ::selection {
-    background-color: var(--color-accent);
+    background-color: var(--color-signal);
     color: #fff;
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-amber);
     outline-offset: 3px;
   }
 
@@ -114,79 +131,94 @@
   input:-webkit-autofill,
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
-    -webkit-text-fill-color: rgb(255 255 255 / 0.92);
-    -webkit-box-shadow: 0 0 0 1000px var(--color-night) inset;
-    caret-color: var(--color-accent);
+    -webkit-text-fill-color: var(--color-bone);
+    /* The ground itself, not a lifted shade: the fields are ruled lines with no
+       fill, so any other value paints a visible rectangle behind an autofilled
+       value that was not there a moment before. */
+    -webkit-box-shadow: 0 0 0 1000px var(--color-basalt) inset;
+    caret-color: var(--color-amber);
     transition: background-color 9999s ease-out 0s;
   }
 }
 
 /* ==========================================================================
-   Utilities
+   Type treatments — four, and that is the whole scale.
    ========================================================================== */
 
-/* Small caps label. The page's only decorative type treatment.
-   0.2em, not more: past that a Cyrillic label stops reading as a word. */
-@utility eyebrow {
+/*
+ * The reference label. Every piece of micro-type on the page is one of these: the
+ * distributor credit, the field names in the data table, the form labels, the
+ * edition mark. 0.22em, because at this size a letterspaced Cyrillic label stops
+ * reading as a word much past that.
+ */
+@utility ref {
+  font-family: var(--font-sans);
   font-size: 0.6875rem;
   font-weight: 500;
-  line-height: 1.25;
-  letter-spacing: 0.2em;
+  line-height: 1.3;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
 }
 
-/* Fine grain, at very low opacity, over the backdrop's radials. Without it a
-   soft ramp across 2000px of near-black shows every one of its steps as a band —
-   which is far more visible on a dark screen than on a light one. */
-@utility grain {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-}
-
-/* Display type, at the sizes this page sets it: tight, and never letting a line
-   of Cyrillic caps drift apart. */
-@utility display-lg {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: clamp(2rem, 4.6vw, 3.25rem);
-  line-height: 1.04;
-  letter-spacing: -0.03em;
-}
-
-@utility display-md {
+/*
+ * Display. Oswald, uppercase, tight — the venue name and nothing else at this
+ * size. `0.01em` of tracking rather than none: condensed caps at 3rem+ need a
+ * hair of air between verticals or "ИЙН" closes into a single mass.
+ */
+@utility display {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(1.375rem, 2.4vw, 1.75rem);
-  line-height: 1.18;
-  letter-spacing: -0.02em;
+  font-size: clamp(2.25rem, 6.5vw, 4rem);
+  line-height: 0.94;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+/*
+ * The figures — dates and times. Oswald again, so the data table and the venue
+ * read as one voice, but at body scale and lighter. Tabular by default.
+ */
+@utility figure-md {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.375rem;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section headings — the form, the confirmation. Deliberately modest: the
+   lockup is this page's large type and a heading built to rival it would
+   compete with the identity. */
+@utility heading {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 1.5rem;
+  line-height: 1.15;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 /* ==========================================================================
-   The hero's entrance.
+   The entrance.
 
-   CSS, not JavaScript, and deliberately so. Every element in the hero starts at
-   `opacity: 0`, which means whatever brings it back is load-bearing: if that is
-   a JS animation loop, then a failed hydration, a thrown error, a bundle that
-   never arrives, or simply a tab that is not compositing frames all leave the
-   lockups permanently invisible. This was not hypothetical — it is exactly what
-   happened when the hero was built with framer-motion and measured in a
-   non-compositing tab.
+   CSS, not JavaScript, and deliberately so. Every element that starts at
+   `opacity: 0` has something load-bearing restoring it: if that is a JS
+   animation loop, then a failed hydration, a thrown error, a bundle that never
+   arrives, or a tab that is not compositing frames leaves the lockup permanently
+   invisible. That is not hypothetical — it is what happened when an earlier
+   edition's hero was built with a JS animation library.
 
-   A CSS animation cannot fail that way. It needs no bundle, it runs before
-   hydration, and `animation-fill-mode: both` holds the finished state. Under
-   `prefers-reduced-motion` the block at the foot of this file collapses the
-   duration, which lands every element on its `to` state — visible, unmoved.
-
-   The hero is a server component with no JavaScript of its own at all.
+   A CSS animation cannot fail that way. It needs no bundle, runs before
+   hydration, and `animation-fill-mode: both` holds the finished state. The
+   reduced-motion block at the foot of this file collapses every duration, which
+   lands each element on its `to` state: visible, unmoved.
    ========================================================================== */
 
-/* 10px and 450ms. Far enough to register as arriving, near enough that nothing
-   appears to fly in — and short enough that the last element in the stagger has
-   landed well inside a second. */
-@keyframes hero-rise {
+@keyframes rise {
   from {
     opacity: 0;
-    transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, 12px, 0);
   }
   to {
     opacity: 1;
@@ -194,9 +226,29 @@
   }
 }
 
-.hero-rise {
-  animation: hero-rise 0.45s var(--ease-enter) both;
+.rise {
+  animation: rise 0.5s var(--ease-enter) both;
   animation-delay: var(--rise-delay, 0s);
+}
+
+/* The contour field draws itself in. `stroke-dashoffset` on a long dash pattern,
+   so each ring appears to be traced rather than faded — a survey being drawn.
+   Slow, because it is ambient and must never pull the eye off the facts. */
+@keyframes trace {
+  from {
+    stroke-dashoffset: 1200;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+
+.trace {
+  stroke-dasharray: 1200;
+  animation: trace 2.4s var(--ease-enter) both;
+  animation-delay: var(--trace-delay, 0s);
 }
 
 /* ==========================================================================
@@ -215,5 +267,11 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* The traced contours need their dash pattern cleared too, or collapsing the
+     duration leaves them stroked with a 1200px gap — i.e. invisible. */
+  .trace {
+    stroke-dasharray: none;
   }
 }

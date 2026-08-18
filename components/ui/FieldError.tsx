@@ -1,9 +1,3 @@
-"use client";
-
-import { AnimatePresence, motion } from "framer-motion";
-
-import { DURATION, EASE_ENTER } from "@/lib/motion";
-
 interface FieldErrorProps {
   id: string;
   message?: string | undefined;
@@ -17,28 +11,29 @@ interface FieldErrorProps {
  * from first paint to submission, which matters most on a phone, where a shift
  * can move the submit button out from under a thumb.
  *
- * Set in `accent-bright`, not `accent`: the logo red manages only 4.3:1 against
- * this ground, and this is small text.
+ * A plain server component: the fade is a CSS transition on opacity, so this
+ * needs no `"use client"`, no animation library and no presence tracking. The
+ * element is always mounted; only its opacity changes.
+ *
+ * Set in `signal-bright`, not `signal`: the campaign red manages only 4.3:1
+ * against basalt, and this is 13px type.
  */
 export function FieldError({ id, message }: FieldErrorProps) {
   return (
     <div className="min-h-6 pt-2.5">
-      <AnimatePresence initial={false}>
-        {message ? (
-          <motion.p
-            key={message}
-            id={id}
-            role="alert"
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: DURATION.state, ease: EASE_ENTER }}
-            className="text-[0.8125rem] leading-snug text-accent-bright"
-          >
-            {message}
-          </motion.p>
-        ) : null}
-      </AnimatePresence>
+      <p
+        id={id}
+        /* `alert` only while it says something — an empty live region announced
+           on every render would interrupt a screen reader mid-field. */
+        role={message ? "alert" : undefined}
+        className={[
+          "text-[0.8125rem] leading-snug text-signal-bright",
+          "transition-opacity duration-200 ease-enter",
+          message ? "opacity-100" : "opacity-0",
+        ].join(" ")}
+      >
+        {message}
+      </p>
     </div>
   );
 }

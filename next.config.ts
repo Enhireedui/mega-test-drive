@@ -10,13 +10,10 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [360, 420, 640, 828, 1080, 1200, 1440, 1920, 2048, 2560],
-    /* The brand marks are painted at 18–26px tall; nothing smaller is needed,
-       and 2560 covers the hero still on an ultrawide display. */
-    imageSizes: [64, 128, 180, 240, 320, 480],
+    /* The two lockups are the only small bitmaps left; 180–640 covers the SAIN
+       mark at 18–20px tall and the campaign lockup at every width it is set to. */
+    imageSizes: [180, 240, 320, 480, 640],
     qualities: [75, 82],
-  },
-  experimental: {
-    optimizePackageImports: ["framer-motion"],
   },
   async headers() {
     return [

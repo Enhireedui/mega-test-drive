@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { findEventDate, isKnownTimeSlot } from "@/lib/config";
+import { transportChoices } from "@/lib/config";
 
 /**
  * Mongolian mobile numbers are 8 digits and begin with 5–9
@@ -14,9 +14,7 @@ const MN_MOBILE_PATTERN = /^[5-9]\d{7}$/;
  */
 export function normalizePhone(value: string): string {
   const digits = value.replace(/\D/g, "");
-  const withoutCountryCode =
-    digits.length > 8 && digits.startsWith("976") ? digits.slice(3) : digits;
-  return withoutCountryCode;
+  return digits.length > 8 && digits.startsWith("976") ? digits.slice(3) : digits;
 }
 
 /** "9911 2233" — grouping used while typing, purely presentational. */
@@ -26,16 +24,33 @@ export function formatPhoneInput(value: string): string {
   return `${digits.slice(0, 4)} ${digits.slice(4)}`;
 }
 
-/** Inline field messages: short prompts, so no closing full stop. */
-export const messages = {
-  fullNameRequired: "Нэрээ оруулна уу",
-  fullNameInvalid: "Зөвхөн үсэг, зай болон зураас оруулах боломжтой",
-  phoneRequired: "Утасны дугаараа оруулна уу",
-  phoneInvalid: "8 оронтой мобайл дугаараа зөв оруулна уу",
-  dateRequired: "Ирэх өдрөө сонгоно уу",
-  timeRequired: "Цагаа сонгоно уу",
+/**
+ * Inline field messages.
+ *
+ * Full sentences with a closing full stop, which is what the brief specifies:
+ * with only two fields on the page an error is a rare event and reads as a
+ * remark, not as a terse label under a control.
+ */
+const messages = {
+  fullNameRequired: "Нэрээ оруулна уу.",
+  fullNameInvalid: "Зөвхөн үсэг, зай болон зураас оруулах боломжтой.",
+  phoneRequired: "Утасны дугаараа оруулна уу.",
+  phoneInvalid: "Утасны дугаараа зөв оруулна уу.",
+  transportRequired: "Унаагаа сонгоно уу.",
 } as const;
 
+/**
+ * Three fields, and the trap.
+ *
+ * No `visitDate`, no `visitTime`, no model: the event is one day inside one
+ * window and the fleet is not chosen from a list. `transport` is the one question
+ * beyond a name and a number, and it is asked because the organiser runs a coach
+ * on a timetable and cannot load it otherwise.
+ *
+ * It is validated against the ids in lib/config.ts rather than a hardcoded list,
+ * so editing the timetable there cannot leave a stale rule here that rejects a
+ * run the form is offering.
+ */
 export const registrationSchema = z.object({
   fullName: z
     .string()
@@ -48,39 +63,40 @@ export const registrationSchema = z.object({
     .trim()
     .min(1, messages.phoneRequired)
     .refine((value) => MN_MOBILE_PATTERN.test(normalizePhone(value)), messages.phoneInvalid),
-  visitDate: z
+  transport: z
     .string()
-    .min(1, messages.dateRequired)
-    .refine((value) => findEventDate(value) !== undefined, messages.dateRequired),
-  visitTime: z
-    .string()
-    .min(1, messages.timeRequired)
-    .refine((value) => isKnownTimeSlot(value), messages.timeRequired),
+    .refine((value) => transportChoices().includes(value), messages.transportRequired),
   // Bots fill every field they find; humans never see this one.
   honeypot: z.string().max(0),
 });
-
-export type RegistrationSchema = z.infer<typeof registrationSchema>;
 
 /** Collapse runs of whitespace so "  Бат   Эрдэнэ " becomes "Бат Эрдэнэ". */
 export function normalizeFullName(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
-/** User-facing copy for every failure path. Never leaks technical detail. */
-export const errorCopy: Record<string, string> = {
-  VALIDATION: "Бүртгэлийн мэдээлэл дутуу байна. Талбар бүрийг шалгаад дахин оролдоно уу.",
+/**
+ * User-facing copy for every failure path. Never leaks technical detail.
+ *
+ * Most codes answer with the one sentence the brief specifies, because from the
+ * visitor's chair a timeout, a bad gateway and an unparseable response are the
+ * same event with the same remedy: it did not go through, try again. The three
+ * that say something else are the three where "try again" would be wrong advice
+ * — an already-registered number, a dead connection, and a misconfigured
+ * endpoint that will keep failing until someone fixes it.
+ */
+const GENERIC_FAILURE = "Бүртгэл илгээхэд алдаа гарлаа. Дахин оролдоно уу.";
+
+const errorCopy: Record<string, string> = {
+  VALIDATION: "Бөглөсөн мэдээллээ шалгаад дахин оролдоно уу.",
   DUPLICATE: "Энэ утасны дугаараар аль хэдийн бүртгүүлсэн байна.",
-  /* Not "дүүрсэн" — no window has a ceiling. A time is unavailable only when the
-     organiser has closed it by hand. */
-  SLOT_UNAVAILABLE: "Сонгосон цаг боломжгүй болсон байна. Өөр цаг сонгоно уу.",
-  TIMEOUT: "Хариу хэт удаж байна. Холболтоо шалгаад дахин оролдоно уу.",
+  TIMEOUT: GENERIC_FAILURE,
   NETWORK: "Интернэт холболт тасалдсан байна. Дахин оролдоно уу.",
-  UPSTREAM: "Бүртгэл хүлээн авахад түр зуурын доголдол гарлаа. Хэсэг хугацааны дараа дахин оролдоно уу.",
+  UPSTREAM: GENERIC_FAILURE,
   CONFIG: "Бүртгэлийн систем түр хугацаанд ажиллахгүй байна. Та бидэнтэй шууд холбогдоно уу.",
-  UNKNOWN: "Уучлаарай, бүртгэл хийгдсэнгүй. Дахин оролдоно уу.",
+  UNKNOWN: GENERIC_FAILURE,
 };
 
 export function messageForErrorCode(code: string): string {
-  return errorCopy[code] ?? errorCopy.UNKNOWN ?? "";
+  return errorCopy[code] ?? GENERIC_FAILURE;
 }

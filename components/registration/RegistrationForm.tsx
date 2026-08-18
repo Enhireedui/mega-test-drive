@@ -1,97 +1,95 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { registerAttendee } from "@/actions/register";
-import { SuccessDialog } from "@/components/registration/SuccessDialog";
 import { ActionButton } from "@/components/ui/ActionButton";
-import { OptionGroup, type Option } from "@/components/ui/OptionGroup";
 import { TextField } from "@/components/ui/TextField";
-import { eventConfig, findEventDate, isSlotClosed, slotRangeLabel } from "@/lib/config";
-import { DURATION, EASE_ENTER } from "@/lib/motion";
+import { TransportChoice } from "@/components/ui/TransportChoice";
+import { eventConfig, transportLabel, venueLabel } from "@/lib/config";
 import { formatPhoneInput, messageForErrorCode, registrationSchema } from "@/lib/validation";
 import type { RegistrationFormValues } from "@/types/registration";
-
-interface RegistrationFormProps {
-  /** Focused when the form unfolds, so the keyboard opens on the first field. */
-  autoFocus?: boolean;
-}
 
 const EMPTY_FORM: RegistrationFormValues = {
   fullName: "",
   phone: "",
-  visitDate: "",
-  visitTime: "",
+  transport: "",
   honeypot: "",
 };
 
-/** Shown on a window the organiser has closed. Nothing is ever *full*. */
-const CLOSED_NOTE = "Хаагдсан";
-
-/*
- * Both option groups are built once, here, at module scope.
+/**
+ * The confirmation.
  *
- * No window has a registration ceiling, so there is nothing to count and nothing
- * to fetch: whether a plate can be tapped depends only on `closedSlots`, which is
- * fixed in lib/config.ts. That makes the options constant for the lifetime of the
- * bundle — recomputing them per render, from a server snapshot that no longer
- * exists, would be work in service of an answer that cannot change.
+ * It replaces the form in place — no dialog, no overlay, no focus trap, no scroll
+ * lock, and nothing to dismiss. The form is a column in a composition, so the
+ * calmest possible confirmation is that column quietly becoming the answer.
+ *
+ * No tick graphic, no colour flood, no confetti. An amber reference rule, the
+ * words, and the three facts worth re-reading, set in the same label-and-value
+ * rhythm as the table on the left so the two read as one document. Announced
+ * through the live region its parent keeps mounted, rather than by stealing focus.
  */
-const TIME_OPTIONS: Record<string, Option[]> = Object.fromEntries(
-  eventConfig.dates.map((date) => [
-    date.id,
-    eventConfig.timeSlots.map((slot) => {
-      const closed = isSlotClosed(date.id, slot.id);
-      return {
-        value: slot.id,
-        label: slotRangeLabel(slot.id),
-        /* An open window says nothing extra; only a closed one has news. */
-        ...(closed ? { note: CLOSED_NOTE } : {}),
-        disabled: closed,
-      };
-    }),
-  ]),
-);
+function Confirmation({ headingId, transport }: { headingId: string; transport: string }) {
+  const { title, date, hours } = eventConfig;
+
+  /*
+   * The coach is read back and the name and number are not. They typed those a
+   * moment ago; the run they picked is the one answer they may genuinely need to
+   * check later, and it is the only one with a time attached to it.
+   */
+  const rows = [
+    { label: "Огноо", value: date.label, numeric: true },
+    { label: "Цаг", value: hours.label, numeric: true },
+    { label: "Газар", value: venueLabel(), numeric: false },
+    { label: "Унаа", value: transportLabel(transport), numeric: false },
+  ];
+
+  return (
+    <div style={{ "--rise-delay": "0.04s" } as React.CSSProperties} className="rise">
+      <span aria-hidden="true" className="block h-px w-12 bg-amber" />
+
+      <h2 id={headingId} className="heading mt-7 text-bone">
+        Бүртгэл амжилттай
+      </h2>
+
+      <p className="mt-4 text-[0.9375rem] leading-relaxed text-sage">
+        {title}-д бүртгүүлсэнд баярлалаа.
+      </p>
+
+      <dl className="mt-9 border-t border-rule">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-baseline gap-6 border-b border-rule py-3.5">
+            <dt className="ref w-14 shrink-0 pt-0.5 text-sage">{row.label}</dt>
+            <dd
+              className="font-display text-[1.0625rem] tracking-[0.02em] text-bone"
+              {...(row.numeric ? { "data-numeric": "" } : {})}
+            >
+              {row.value}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
 
 /**
- * A day is offered unless every one of its windows has been closed by hand. Such
- * a day is shown struck through rather than removed — removing it would leave
- * someone wondering whether they had misread the poster.
- */
-const DAY_OPTIONS: Option[] = eventConfig.dates.map((date) => {
-  const open = (TIME_OPTIONS[date.id] ?? []).some((option) => !option.disabled);
-
-  return {
-    value: date.id,
-    label: date.label,
-    ...(open ? { detail: `${date.weekday} гараг` } : { note: CLOSED_NOTE }),
-    disabled: !open,
-  };
-});
-
-/**
- * Name, number, day, time, send.
+ * Name, number, send.
  *
- * Four questions and no steps. Unlike edition 5 there are two event days, so the
- * day is asked for rather than assumed — and choosing a day clears the time,
- * because the same clock time on Saturday and on Sunday are different windows,
- * and carrying a selection across would submit a day nobody chose it for.
+ * Three questions, one button, no steps. The event runs on one day inside one
+ * window and the fleet is not picked from a list, so neither is asked. The one
+ * thing that is asked beyond a name and a number is which coach — because the
+ * organiser runs one on a timetable and cannot load it otherwise.
  *
- * Nothing here is rationed. Every window takes everyone who signs up, so no plate
- * ever reads "дүүрсэн" and the form never needs to know what the sheet holds.
+ * On failure the entered values stay exactly where they are; the form is never
+ * reset on an error path, only replaced on success.
  */
-export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
-  const rawId = useId();
-  const dayLabelId = `${rawId}-day`;
-  const timeLabelId = `${rawId}-time`;
-
+export function RegistrationForm({ headingId }: { headingId: string }) {
   const [submissionError, setSubmissionError] = useState<string | null>(null);
-  const [confirmed, setConfirmed] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
   const submitLock = useRef(false);
-  const nameRef = useRef<HTMLInputElement | null>(null);
 
   const {
     register,
@@ -99,7 +97,6 @@ export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
     control,
     setValue,
     setError,
-    reset,
     formState: { errors, isSubmitting },
   } = useForm<RegistrationFormValues>({
     resolver: zodResolver(registrationSchema),
@@ -109,15 +106,6 @@ export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
   });
 
   /*
-   * `useWatch`, not the `watch()` returned by `useForm`. `watch()` hands back a
-   * fresh function on every render, which React Compiler cannot memoize safely,
-   * so it bails out of optimising this whole component. `useWatch` subscribes to
-   * these two fields alone and re-renders only when one of them changes.
-   */
-  const visitDate = useWatch({ control, name: "visitDate" });
-  const visitTime = useWatch({ control, name: "visitTime" });
-
-  /**
    * Registered in visual order: React Hook Form focuses the first *registered*
    * field carrying an error, so registering the phone first would send focus past
    * the name field on a failed submit.
@@ -125,63 +113,28 @@ export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
   const nameField = register("fullName");
   const phoneField = register("phone");
 
-  /* Focus the first field once, when the form has unfolded. */
-  useEffect(() => {
-    if (!autoFocus) return;
-    const timer = window.setTimeout(() => nameRef.current?.focus({ preventScroll: true }), 420);
-    return () => window.clearTimeout(timer);
-  }, [autoFocus]);
-
-  const timeOptions = visitDate ? (TIME_OPTIONS[visitDate] ?? []) : [];
-
-  /* If closures have left only one day standing, preselect it rather than
-     presenting a decision that has already been made. */
-  useEffect(() => {
-    if (visitDate) return;
-    const open = DAY_OPTIONS.filter((option) => !option.disabled);
-    if (open.length === 1 && open[0]) {
-      setValue("visitDate", open[0].value, { shouldValidate: false });
-    }
-  }, [visitDate, setValue]);
-
-  const handleDayChange = (nextDate: string) => {
-    if (nextDate === visitDate) return;
-    setValue("visitDate", nextDate, { shouldValidate: true, shouldDirty: true });
-    /* Times belong to a day. Never carry one across. */
-    setValue("visitTime", "", { shouldValidate: false });
-    setSubmissionError(null);
-  };
-
-  const handleTimeChange = (nextTime: string) => {
-    setValue("visitTime", nextTime, { shouldValidate: true, shouldDirty: true });
-    setSubmissionError(null);
-  };
+  /*
+   * `useWatch`, not the `watch()` returned by `useForm`. `watch()` hands back a
+   * fresh function on every render, which React Compiler cannot memoize safely, so
+   * it bails out of optimising this whole component. `useWatch` subscribes to this
+   * one field and re-renders only when it changes.
+   */
+  const transport = useWatch({ control, name: "transport" });
 
   const onSubmit = async (values: RegistrationFormValues) => {
     if (submitLock.current) return;
     submitLock.current = true;
     setSubmissionError(null);
 
-    const date = findEventDate(values.visitDate);
-
     try {
       const result = await registerAttendee(values);
 
       if (result.status === "success") {
-        setConfirmed(
-          `${date?.label ?? values.visitDate} · ${date?.weekday ?? ""} гараг · ` +
-            `${slotRangeLabel(values.visitTime)}`,
-        );
-        reset(EMPTY_FORM);
+        setConfirmed(true);
         return;
       }
 
       const message = messageForErrorCode(result.code);
-      /* The only way this arrives is a window closed by hand after the page was
-         built. Clear the choice so the next tap is a fresh one. */
-      if (result.code === "SLOT_UNAVAILABLE") {
-        setValue("visitTime", "", { shouldValidate: false });
-      }
       /*
        * Show the reason once. When it belongs to a field it goes under that
        * field; the banner is only for failures with nowhere else to live.
@@ -204,56 +157,59 @@ export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
     }
   };
 
+  /*
+   * One live region, mounted whichever branch renders.
+   *
+   * If the announcement lived inside the form it would unmount at the exact
+   * moment there was something worth announcing, and a screen reader would hear
+   * nothing at all about the registration having succeeded.
+   */
+  const announcement = isSubmitting
+    ? "Бүртгэлийг илгээж байна"
+    : confirmed
+      ? "Бүртгэл амжилттай. Дэлгэрэнгүйг доор харна уу."
+      : "";
+
   return (
     <>
-      <form
-        noValidate
-        /*
-         * `handleSubmit(onSubmit)` is built here, inside the event handler,
-         * rather than during render. `onSubmit` reads `submitLock` — and a
-         * function that touches a ref must not be handed to something that
-         * could, as far as the compiler can tell, call it while rendering.
-         * Deferring construction to the event makes the ordering explicit.
-         */
-        onSubmit={(event) => void handleSubmit(onSubmit)(event)}
-        className="text-left"
-      >
-        {/* Bot trap. Off-screen, never announced, never tabbable. */}
-        <div aria-hidden="true" className="absolute -left-[9999px] top-0 size-0 overflow-hidden">
-          <input type="text" tabIndex={-1} autoComplete="off" {...register("honeypot")} />
-        </div>
+      <p aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
 
-        {/* Fields lock while the action is in flight, so nothing can be edited
-            between validation and the write. */}
-        <fieldset
-          disabled={isSubmitting}
-          className="min-w-0 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-55"
-        >
-          {/* 48px between the two columns, 8px between stacked rows — every gap in
-              this form is a multiple of 8. */}
-          <div className="grid gap-x-12 gap-y-2 sm:grid-cols-2">
+      {confirmed ? (
+        <Confirmation headingId={headingId} transport={transport} />
+      ) : (
+        <form noValidate onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
+          <h2 id={headingId} className="heading text-bone">
+            Бүртгүүлэх
+          </h2>
+
+          {/* Bot trap. Off-screen, never announced, never tabbable. */}
+          <div aria-hidden="true" className="absolute -left-[9999px] top-0 size-0 overflow-hidden">
+            <input type="text" tabIndex={-1} autoComplete="off" {...register("honeypot")} />
+          </div>
+
+          {/* Fields lock while the action is in flight, so nothing can be edited
+              between validation and the write. */}
+          <fieldset
+            disabled={isSubmitting}
+            className="mt-9 min-w-0 space-y-7 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-50"
+          >
             <TextField
               label="Нэр"
               autoComplete="name"
               autoCapitalize="words"
               spellCheck={false}
               enterKeyHint="next"
-              /* No placeholder. The label already reads "Нэр", and "Овог нэр"
-                 under it was the same instruction written twice. The phone field
-                 keeps its placeholder because a format hint is not a repeat. */
               error={errors.fullName?.message}
               {...nameField}
-              ref={(node) => {
-                nameField.ref(node);
-                nameRef.current = node;
-              }}
             />
             <TextField
               label="Утасны дугаар"
               type="tel"
               inputMode="numeric"
               autoComplete="tel-national"
-              enterKeyHint="done"
+              enterKeyHint="send"
               maxLength={9}
               prefix="+976"
               placeholder="9911 2233"
@@ -264,87 +220,37 @@ export function RegistrationForm({ autoFocus = false }: RegistrationFormProps) {
                 void phoneField.onChange(event);
               }}
             />
-          </div>
 
-          <p id={dayLabelId} className="eyebrow mb-4 mt-12 text-white/55 sm:mt-14">
-            Ирэх өдөр
-          </p>
-          <OptionGroup
-            labelledBy={dayLabelId}
-            value={visitDate}
-            options={DAY_OPTIONS}
-            onChange={handleDayChange}
-            error={errors.visitDate?.message}
-            columns={2}
-          />
-
-          <p id={timeLabelId} className="eyebrow mb-4 mt-10 text-white/55">
-            Ирэх цаг
-          </p>
-          {visitDate ? (
-            <OptionGroup
-              labelledBy={timeLabelId}
-              value={visitTime}
-              options={timeOptions}
-              onChange={handleTimeChange}
-              error={errors.visitTime?.message}
-              columns={3}
+            <TransportChoice
+              value={transport}
+              onChange={(next) => {
+                setValue("transport", next, { shouldValidate: true, shouldDirty: true });
+                setSubmissionError(null);
+              }}
+              error={errors.transport?.message}
             />
-          ) : (
-            /* Same height as the plates it will be replaced by, so choosing a day
-               does not make the page jump under the finger that chose it. */
-            <p className="flex min-h-20 items-center text-[0.9375rem] text-white/60">
-              Эхлээд ирэх өдрөө сонгоно уу.
-            </p>
-          )}
-        </fieldset>
+          </fieldset>
 
-        <AnimatePresence initial={false}>
           {submissionError ? (
-            <motion.div
-              key={submissionError}
+            <p
               role="alert"
-              initial={{ opacity: 0, y: -6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ duration: DURATION.state, ease: EASE_ENTER }}
-              className="mt-8 rounded-xl border-l-2 border-accent-bright bg-white/[0.035] px-5 py-4"
+              className="mt-6 border-l-2 border-signal pl-4 text-[0.875rem] leading-relaxed text-bone"
             >
-              <p className="text-[0.875rem] leading-relaxed text-white/80">{submissionError}</p>
-            </motion.div>
+              {submissionError}
+            </p>
           ) : null}
-        </AnimatePresence>
 
-        <ActionButton
-          type="submit"
-          size="lg"
-          fullWidth
-          loading={isSubmitting}
-          loadingLabel="Илгээж байна"
-          className="mt-12"
-        >
-          Бүртгүүлэх
-        </ActionButton>
-
-        {/*
-         * Progress is visible on the button; this makes it audible too.
-         *
-         * The two sentences of small print that used to sit under this button are
-         * gone: "one registration per phone number" and "we use your number to
-         * confirm". Both were true, and neither was worth the weight — the
-         * one-per-number rule is stated by the error you get if you break it, and
-         * nobody reads a disclaimer before they have decided to submit.
-         */}
-        <p aria-live="polite" className="sr-only">
-          {isSubmitting ? "Бүртгэлийг илгээж байна" : ""}
-        </p>
-      </form>
-
-      <SuccessDialog
-        open={confirmed !== null}
-        onClose={() => setConfirmed(null)}
-        summary={confirmed ?? ""}
-      />
+          <ActionButton
+            type="submit"
+            fullWidth
+            loading={isSubmitting}
+            loadingLabel="Илгээж байна"
+            className="mt-9"
+          >
+            Бүртгүүлэх
+          </ActionButton>
+        </form>
+      )}
     </>
   );
 }

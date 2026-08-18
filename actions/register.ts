@@ -1,6 +1,6 @@
 "use server";
 
-import { isSlotClosed } from "@/lib/config";
+import { transportLabel } from "@/lib/config";
 import { normalizeFullName, normalizePhone, registrationSchema } from "@/lib/validation";
 import type {
   RegistrationFormValues,
@@ -44,6 +44,18 @@ function readUpstreamOutcome(raw: string): { ok: boolean; reason?: string } | nu
   }
 }
 
+/**
+ * Take one registration.
+ *
+ * ── The upstream contract shrank ──────────────────────────────────────────
+ * Same URL, same method, same interpretation of the reply — but the body now
+ * carries a timestamp, a name, a number and the transport answer. The visitor is
+ * asked three things, so three things are what get written.
+ *
+ * docs/apps-script.gs has been rewritten to match, and **must be published as a
+ * new version** before this page can take a registration: edition 6's script
+ * requires a visit date and refuses any body without one.
+ */
 export async function registerAttendee(
   values: RegistrationFormValues,
 ): Promise<RegistrationResult> {
@@ -68,33 +80,23 @@ export async function registerAttendee(
 
   const fullName = normalizeFullName(parsed.data.fullName);
   const phone = normalizePhone(parsed.data.phone);
-  const { visitDate, visitTime } = parsed.data;
 
-  // 3 — manually closed slot. The only refusal a window can produce: there is no
-  //     per-day or per-time ceiling, so nobody is ever turned away for capacity.
-  if (isSlotClosed(visitDate, visitTime)) {
-    return { status: "error", code: "SLOT_UNAVAILABLE", field: "visitTime" };
-  }
-
-  // 4 — in-flight duplicate guard. Keyed on the number alone, matching the
-  //     one-registration-per-phone rule stated on the form.
+  /*
+   * 3 — in-flight duplicate guard, keyed on the number alone. There is no slot
+   *     to key on any more, and no capacity to check: the only refusal this app
+   *     can produce is "you have already registered".
+   */
   const now = Date.now();
   pruneRecentSubmissions(now);
-  const dedupeKey = phone;
-  if (recentSubmissions.has(dedupeKey)) {
+  if (recentSubmissions.has(phone)) {
     return { status: "error", code: "DUPLICATE", field: "phone" };
   }
 
-  /*
-   * One upstream request, and only one. There is no capacity to check, so the
-   * write is the whole conversation — which is what keeps this inside the host's
-   * 10s synchronous function budget on an Apps Script cold start.
-   */
   const webhookUrl = process.env.GOOGLE_SHEETS_WEBHOOK_URL;
   if (!webhookUrl) {
     // Local development without a sheet still exercises the full UI flow.
     if (process.env.NODE_ENV === "development") {
-      recentSubmissions.set(dedupeKey, now);
+      recentSubmissions.set(phone, now);
       return { status: "success" };
     }
     return { status: "error", code: "CONFIG" };
@@ -104,8 +106,7 @@ export async function registerAttendee(
     timestamp: new Date(now).toISOString(),
     fullName,
     phone,
-    visitDate,
-    visitTime,
+    transport: transportLabel(parsed.data.transport),
   };
 
   try {
@@ -137,15 +138,6 @@ export async function registerAttendee(
       if (outcome.reason === "duplicate") {
         return { status: "error", code: "DUPLICATE", field: "phone" };
       }
-      /*
-       * `full` is no longer a refusal this app can cause — the script has no
-       * capacity check. It is still mapped rather than dropped because an older
-       * deployment left in place would answer it, and letting that fall through
-       * to UPSTREAM would hide a real, actionable message behind a shrug.
-       */
-      if (outcome.reason === "full") {
-        return { status: "error", code: "SLOT_UNAVAILABLE", field: "visitTime" };
-      }
       return { status: "error", code: "UPSTREAM" };
     }
   } catch (error) {
@@ -160,6 +152,6 @@ export async function registerAttendee(
     return { status: "error", code: "UNKNOWN" };
   }
 
-  recentSubmissions.set(dedupeKey, now);
+  recentSubmissions.set(phone, now);
   return { status: "success" };
 }

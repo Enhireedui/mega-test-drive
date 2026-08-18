@@ -15,12 +15,12 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
   return (
     <div className="flex min-h-svh items-center justify-center px-7">
       <div className="w-full max-w-md">
-        <p className="eyebrow text-white/50">Алдаа</p>
-        <h1 className="display-md mt-7 text-white">Хуудсыг харуулах боломжгүй байна.</h1>
-        <p className="mt-5 text-[0.9375rem] leading-relaxed text-white/55">
+        <span aria-hidden="true" className="block h-px w-12 bg-amber" />
+        <h1 className="heading mt-7 text-bone">Хуудсыг харуулах боломжгүй байна</h1>
+        <p className="mt-5 text-[0.9375rem] leading-relaxed text-sage">
           Энэ доголдол түр зуурын байж магадгүй. Дахин оролдоод үзнэ үү.
         </p>
-        <ActionButton size="md" onClick={() => reset()} className="mt-10">
+        <ActionButton onClick={() => reset()} className="mt-10">
           Дахин оролдох
         </ActionButton>
       </div>

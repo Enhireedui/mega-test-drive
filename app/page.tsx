@@ -1,55 +1,57 @@
-import { Hero } from "@/components/sections/Hero";
+import { Masthead } from "@/components/sections/Masthead";
 import { SiteFooter } from "@/components/sections/SiteFooter";
-import { eventConfig, eventStartTimestamps } from "@/lib/config";
+import { eventConfig, eventEndTimestamp, eventStartTimestamp, venueLabel } from "@/lib/config";
 
 /*
- * Fully static. Every word on this page comes from lib/config.ts, and with no
- * capacity to report there is nothing left to re-read at runtime — so there is
- * no `revalidate` and no upstream request between a visitor and the first paint.
+ * Fully static. Every word comes from lib/config.ts and nothing is read back at
+ * runtime — no capacity to report, no availability to check — so there is no
+ * `revalidate` and no upstream request between a visitor and the first paint.
  */
 
 function EventStructuredData() {
-  const [firstStart] = eventStartTimestamps();
-  const startDate = firstStart === undefined ? undefined : new Date(firstStart).toISOString();
-  const { venue, dates } = eventConfig;
-  const lastDate = dates[dates.length - 1];
+  const { title, editionName, venue, presenter, siteUrl, poster } = eventConfig;
+  const start = eventStartTimestamp();
+  const end = eventEndTimestamp();
 
   /*
-   * Only claims that are printed on the poster or enforced by this app. In
-   * particular there is no `offers` block: nothing has told us what admission
-   * costs, and asserting a price of zero in machine-readable form — where a
-   * search engine can surface it as fact — would be worse than omitting it.
+   * Only claims the poster makes or this app enforces.
+   *
+   * No `offers` block: nothing has told us what admission costs, and asserting a
+   * price of zero in machine-readable form — where a search engine can surface it
+   * as fact — would be worse than omitting it. No `geo` block either, for the
+   * same reason: the venue's coordinates are unknown, and a guess published here
+   * is a guess published as data.
    */
   const schema = {
     "@context": "https://schema.org",
     "@type": "Event",
-    name: eventConfig.title,
-    description: `${eventConfig.host.name}-ийн хүрээнд болох ${eventConfig.title}.`,
+    name: `${title} — ${editionName}`,
+    description:
+      `${title} — ${editionName}. ${venueLabel()}, ` +
+      `${eventConfig.date.label} (${eventConfig.date.weekday}), ${eventConfig.hours.label}.`,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
-    ...(startDate ? { startDate } : {}),
-    ...(lastDate ? { endDate: lastDate.iso } : {}),
+    ...(start === null ? {} : { startDate: new Date(start).toISOString() }),
+    ...(end === null ? {} : { endDate: new Date(end).toISOString() }),
     location: {
       "@type": "Place",
       name: venue.name,
       address: {
         "@type": "PostalAddress",
-        addressRegion: venue.region,
+        streetAddress: venue.approach,
         addressCountry: "MN",
       },
-      geo: {
-        "@type": "GeoCoordinates",
-        latitude: venue.latitude,
-        longitude: venue.longitude,
-      },
+      /* The organiser's own map link, published only when one exists. A `geo` block
+         is still omitted: the coordinates remain unknown, and a guessed latitude
+         published as machine-readable fact is worse than no latitude. */
+      ...(venue.mapUrl ? { hasMap: venue.mapUrl } : {}),
     },
-    superEvent: { "@type": "Event", name: eventConfig.host.name },
-    sponsor: {
+    organizer: {
       "@type": "Organization",
-      name: eventConfig.presenter.name,
-      url: eventConfig.siteUrl,
+      name: presenter.name,
+      url: siteUrl,
     },
-    image: [`${eventConfig.siteUrl}${eventConfig.poster.src}`],
+    image: [`${siteUrl}${poster.src}`],
   };
 
   return (
@@ -62,12 +64,17 @@ function EventStructuredData() {
 }
 
 /**
- * One screen, and a sign-off.
+ * A cover, the facts beside the form, and a colophon.
  *
- * The event with its form fills the viewport; below it the sponsor's mark and one
- * line naming them. There is nothing else — no invitation copy, no brand wall, no
- * photography, no availability counter, no FAQ. A visitor arrives, reads two
- * facts, and registers.
+ * Two elements. The masthead carries the whole invitation — the credit, the
+ * campaign lockup, the place, the three facts and the form — and the colophon signs
+ * it. Nothing else: no navigation, no benefits section, no lineup, no FAQ, no brand
+ * wall, no photographic band and no second call to action.
+ *
+ * There is no photograph on the page at all, and that is the brief rather than an
+ * omission. What carries it instead is the campaign lockup — chrome and red, and
+ * dramatic on its own — over the contour field. The supplied photography still ships
+ * as the social card, where a link preview has no room for real text.
  */
 export default function Page() {
   return (
@@ -75,14 +82,14 @@ export default function Page() {
       <EventStructuredData />
 
       <a
-        href="#register"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-white focus:px-5 focus:py-3 focus:text-[0.8125rem] focus:text-night"
+        href="#registration"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-bone focus:px-5 focus:py-3 focus:text-[0.8125rem] focus:text-basalt"
       >
         Бүртгэл рүү шилжих
       </a>
 
       <main>
-        <Hero />
+        <Masthead />
       </main>
 
       <SiteFooter />
