@@ -15,7 +15,7 @@ carries `{ timestamp, fullName, phone, transport }` and the old script answers
 
 Fix, once:
 
-1. Open the registrations sheet ▸ **Extensions ▸ Apps Script**.
+1. Open **edition 6's registrations sheet** ▸ **Extensions ▸ Apps Script**.
 2. Replace all of `Code.gs` with [`docs/apps-script.gs`](docs/apps-script.gs). Save.
 3. **Deploy ▸ Manage deployments ▸** edit the live deployment ▸ Version: **New
    version** ▸ Deploy.
@@ -23,10 +23,17 @@ Fix, once:
 Editing the file without publishing a new version leaves the old code running. That
 is the most common reason a change appears to do nothing.
 
-The sheet's columns changed too. D is now **Унаа** — which coach the person is
-taking, or that they are driving themselves — and E–G are yours. Start a clean sheet
-for this edition, or delete the old column E (the visit time) and relabel D. The
-layout is documented at the top of `docs/apps-script.gs`.
+Nothing else moves: the script writes into **edition 6's spreadsheet**, and editing
+the existing deployment keeps the `/exec` URL you already have, so
+`GOOGLE_SHEETS_WEBHOOK_URL` stays as it is.
+
+Inside that file, edition 7's rows go on **their own tab**, `Тест драйв 7`, created on
+the first registration. Edition 6's `Sheet1` is never read or written. Two reasons
+they are not one list: edition 6 put the visit day in D and the time in E where this
+edition puts **Унаа** — which coach the person is taking, or that they are driving
+themselves — and the duplicate check reads the whole phone column of the tab it
+writes to, so a shared tab would tell every visitor who signed up in August that they
+are already registered. The layout is documented at the top of `docs/apps-script.gs`.
 
 ---
 

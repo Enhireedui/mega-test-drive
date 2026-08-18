@@ -23,6 +23,23 @@
  * the BYD 4S showroom on a fixed timetable, and column D is how you load it —
  * it reads either "Автобус 10:00 (буцах 12:00)" or "Хувийн унаагаар".
  *
+ * ── The same spreadsheet as edition 6, on its own tab ──────────────────────
+ * SPREADSHEET_ID is edition 6's file, unchanged: the registrations stay in one
+ * place and you keep working in the document you already have open. Edition 7's
+ * rows land on their own tab inside it, created on the first registration, and
+ * edition 6's "Sheet1" is never read or written.
+ *
+ * Two reasons the rows do not simply continue below edition 6's:
+ *
+ *   1. The columns no longer line up. Edition 6 wrote the visit day into D and
+ *      the visit time into E; this edition writes "Унаа" into D and leaves E to
+ *      your team. Appending to that sheet would file coach times under
+ *      "Ирэх өдөр" and leave a permanent seam in the middle of one column.
+ *   2. The duplicate check reads the whole phone column of the tab it writes to.
+ *      Sharing a tab with edition 6 would make every returning visitor — anyone
+ *      who signed up in August — be told they are already registered, and the
+ *      page has no way to tell them apart from a genuine double submission.
+ *
  * ── Sheet layout (must match COLUMN_* below) ───────────────────────────────
  *   A  Бүртгүүлсэн огноо   written by this script
  *   B  Овог нэр            written by this script
@@ -46,14 +63,10 @@
  *     then approve the permission prompt, and copy the /exec URL into
  *     GOOGLE_SHEETS_WEBHOOK_URL.)
  *
- * Editing this file without publishing a NEW VERSION leaves the old code
- * running. This is the single most common reason a change appears to do nothing.
- *
- * ── Starting a sheet for this edition ──────────────────────────────────────
- * Simplest is a clean sheet: edition 6's sheet has the visit date in column D and
- * the time in E, where this script now expects "Унаа" and then your own columns.
- * If you would rather keep the old rows, delete column E (the old time) and
- * relabel D, so the headers line up with the list above.
+ * Editing the deployment in place keeps the /exec URL you already have, so
+ * GOOGLE_SHEETS_WEBHOOK_URL does not change. Editing this file WITHOUT
+ * publishing a new version leaves the old code running. This is the single most
+ * common reason a change appears to do nothing.
  *
  * ── Contract ──────────────────────────────────────────────────────────────
  * POST  body: { timestamp, fullName, phone, transport }
@@ -69,8 +82,13 @@
  * write the same person twice.
  */
 
+/* Edition 6's spreadsheet. Edition 7 writes into the same file, on SHEET_NAME. */
 var SPREADSHEET_ID = "1mP1Z-Kzs9IVhOJMEKJ-42TLGgKmASnXuNevielY7fgw";
-var SHEET_NAME = "Sheet1";
+
+/* Edition 7's own tab. Created on the first registration if it is not there.
+   Edition 6's rows live on "Sheet1" and are left alone. Renaming the tab by hand
+   in Sheets means renaming it here too, or the next write recreates it empty. */
+var SHEET_NAME = "Тест драйв 7";
 
 var TIME_ZONE = "Asia/Ulaanbaatar";
 var LOCK_TIMEOUT_MS = 20000;
