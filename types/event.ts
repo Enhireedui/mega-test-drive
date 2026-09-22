@@ -15,10 +15,6 @@
  * of four arrival slots. Those are choices, so they are modelled as `EventDay`
  * and `EventSlot` and validated against these lists rather than against a
  * hardcoded rule somewhere else.
- *
- * `EventMarque` is also new. The poster prints ten makes, which is the single
- * most useful thing a visitor weighing up a test drive can know, and it is the
- * page's texture — information where edition 7 had a drawing of its mountain.
  */
 
 /** One of the days the fleet is out. */
@@ -110,18 +106,6 @@ export interface EventImage {
   readonly height: number;
 }
 
-/**
- * One make on the day.
- *
- * Set as type, never as a logo: no marque artwork was supplied, and redrawing
- * ten manufacturers' wordmarks from memory would put ten fake logos on a
- * distributor's page. `note` carries the qualifier the poster prints under a
- * name, and only where it prints one.
- */
-export interface EventMarque {
-  readonly name: string;
-  readonly note?: string;
-}
 
 export interface EventConfig {
   readonly edition: number;
@@ -151,6 +135,4 @@ export interface EventConfig {
   readonly slots: readonly EventSlot[];
   readonly hours: EventHours;
   readonly venue: EventVenue;
-  /** The makes out on the day, as printed on the poster. */
-  readonly marques: readonly EventMarque[];
 }

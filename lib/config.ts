@@ -17,15 +17,14 @@ import type { EventConfig } from "@/types/event";
  *     Пүрэв, Баасан гараг Дархан Плазагаас шинэ Дархан      цагийн хооронд
  *                         явах замд
  *
- * and the band above that prints the ten makes listed in `marques`.
  *
  * ── What is deliberately absent ───────────────────────────────────────────
  * No coach, no meeting point, no phone number, no price, no prizes, no
- * giveaways, no capacity and no map link. Edition 7 had a shuttle timetable and
- * a map URL because the organiser supplied them; this poster carries neither, so
- * neither is on the page. A registration page that invents any of it is making a
- * promise the organiser never made. Anything confirmed later belongs here, in
- * this file, and nowhere else.
+ * giveaways, no capacity, no map link and no list of makes. Edition 7 had a
+ * shuttle timetable and a map URL because the organiser supplied them; this
+ * poster carries neither, so neither is on the page. A registration page that
+ * invents any of it is making a promise the organiser never made. Anything
+ * confirmed later belongs here, in this file, and nowhere else.
  */
 export const eventConfig: EventConfig = {
   edition: 8,
@@ -112,25 +111,6 @@ export const eventConfig: EventConfig = {
     timeZone: "Asia/Ulaanbaatar",
   },
 
-  /*
-   * The makes out on the day, in the poster's own order and spelling.
-   *
-   * Set as type, never as logos — no marque artwork was supplied, and redrawing
-   * ten manufacturers' wordmarks would put ten fake logos on a distributor's
-   * page. "212" carries the qualifier the poster prints beside it.
-   */
-  marques: [
-    { name: "JETOUR" },
-    { name: "SOUEAST" },
-    { name: "CHERY" },
-    { name: "BYD" },
-    { name: "RIDDARA" },
-    { name: "AITO" },
-    { name: "212", note: "Special Edition" },
-    { name: "BESTUNE" },
-    { name: "RELY" },
-    { name: "MAXUS" },
-  ],
 } as const;
 
 /* ── derived values ───────────────────────────────────────────────────────── */

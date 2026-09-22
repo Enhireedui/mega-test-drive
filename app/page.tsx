@@ -1,5 +1,4 @@
 import { StickyRegister } from "@/components/registration/StickyRegister";
-import { MarqueIndex } from "@/components/sections/MarqueIndex";
 import { Masthead } from "@/components/sections/Masthead";
 import { SiteFooter } from "@/components/sections/SiteFooter";
 import {
@@ -77,13 +76,13 @@ function EventStructuredData() {
 }
 
 /**
- * A cover, the facts beside the form, the marque index, and a colophon.
+ * A cover with the facts beside the form, and a colophon.
  *
- * Three elements. The masthead carries the whole invitation — the credit, the
- * campaign lockup, the place, the three facts and the form — the index says
- * which cars will be there, and the colophon signs it. Nothing else: no
- * navigation, no benefits section, no FAQ, no photographic band and no second
- * call to action beyond the one docked on phones.
+ * Two elements. The masthead carries the whole invitation — the credit, the
+ * campaign lockup, the place, the three facts and the form — and the colophon
+ * signs it. Nothing else: no navigation, no benefits section, no marque list,
+ * no FAQ, no photographic band and no second call to action beyond the one
+ * docked on phones.
  *
  * There is no photograph on the page at all, and that is the brief rather than
  * an omission. What carries it is the campaign lockup. The supplied poster ships
@@ -103,7 +102,6 @@ export default function Page() {
 
       <main>
         <Masthead />
-        <MarqueIndex />
       </main>
 
       <SiteFooter />

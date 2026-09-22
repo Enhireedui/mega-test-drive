@@ -14,8 +14,8 @@
  *
  * ── The poster is information, not artwork ────────────────────────────────
  * It is a vertical sandwich: the SAIN MOTORS credit, the campaign lockup, the
- * fleet on wet asphalt over Darkhan at dusk, a marque list, then a bar carrying
- * the dates, the place and the hours. Every one of those layers except the
+ * fleet on wet asphalt over Darkhan at dusk, a list of makes, then a bar
+ * carrying the dates, the place and the hours. Every one of those layers except the
  * photograph is typography this page sets as real text, so the poster cannot be
  * a hero, a background or a crop. It is kept whole, once, as the social card —
  * a link preview is the one place baked-in type is the right answer.

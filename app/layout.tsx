@@ -88,10 +88,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-svh">
         {/*
          * Everything on the page paints without JavaScript — the entrance is a
-         * CSS animation, and the identity, the facts, the marque index and the
-         * plates are markup. The form is the exception: it submits through a
-         * server action, so without a bundle the button genuinely cannot work,
-         * and saying so is more use than leaving someone tapping it.
+         * CSS animation, and the identity, the facts and the plates are markup.
+         * The form is the exception: it submits through a server action, so
+         * without a bundle the button genuinely cannot work, and saying so is
+         * more use than leaving someone tapping it.
          */}
         <noscript>
           <p className="border-b border-rule px-6 py-3 text-center text-[0.8125rem] text-slate">

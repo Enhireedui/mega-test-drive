@@ -126,7 +126,7 @@ not change and no new source was supplied, so the committed asset is kept.
 ### The poster is never painted on the page
 
 It is a vertical sandwich: the SAIN MOTORS credit, the campaign lockup, the
-fleet on wet asphalt, the marque list, then a bar carrying the dates, the place
+fleet on wet asphalt, a list of makes, then a bar carrying the dates, the place
 and the hours. Every layer except the photograph is typography this page sets as
 real text, so it cannot be a hero, a background or a crop. It is kept whole,
 once, as the Open Graph card — a link preview is the one place baked-in type is
@@ -179,21 +179,22 @@ letters — so «БҮРТГҮҮЛЭХ», the one word this page exists to be cli
 render with two letters in a fallback face. Any new face must clear that test
 before it ships. See the header of `app/fonts.css`.
 
-### The marque index replaced the contour field
+### The contour field went, and nothing replaced it
 
 Edition 7's one graphic was its mountain pass drawn as elevation contours — the
 terrain was the event, so surveying it was the page's argument. Edition 8 is two
 days in a city and has no such subject; keeping that drawing would have left a
 picture of a mountain on a page about Darkhan.
 
-What replaced it is the only thing the poster carries that the rest of the page
-does not, and the thing a visitor weighing up a test drive most wants to know:
-which cars will be there. Ten names, set as a ruled index — texture that is also
-content, which is the only kind of decoration this page allows.
+Nothing was drawn in its place. The lockup carries the page over an empty
+ground, and that restraint is deliberate: on a page whose whole job is one form,
+an invented graphic would be the only thing on it not doing work.
 
-They are set as **type, never as logos**. No marque artwork was supplied, and
-redrawing ten manufacturers' wordmarks would put ten fake logos on an official
-distributor's page.
+The poster's list of makes was set as an index here for a while and then cut, on
+request. It is in the git history if a later edition wants it back — and if it
+returns it should return as **type, never as logos**: no marque artwork was
+supplied, and redrawing ten manufacturers' wordmarks would put ten fake logos on
+an official distributor's page.
 
 ### The form is in the composition, not below it
 
@@ -204,8 +205,8 @@ columns stack, and the docked bar covers the gap.
 ### There *is* a sticky mobile CTA this time
 
 Edition 7 did not have one and said so. This page is taller — it gained a day
-question and a marque index — and the measurement decided it: on a 390×800 phone
-the registration column starts at y≈652 and its submit button at y≈1279. The
+question — and the measurement decided it: on a 390×800 phone the registration
+column starts at y≈652 and its submit button at y≈1279. The
 form is two thirds of a screen below the fold on arrival.
 
 `components/registration/StickyRegister.tsx` docks a bar while the form is out of
@@ -234,7 +235,7 @@ unmoved.
 ```
 app/          layout (metadata, fonts), page (structured data), error
 components/
-  sections/   Masthead · MarqueIndex · SiteFooter
+  sections/   Masthead · SiteFooter
   registration/ RegistrationForm · StickyRegister
   ui/         ActionButton · ChoiceGroup · TextField · FieldError
 lib/          config (the event) · validation (the schema + all copy)
