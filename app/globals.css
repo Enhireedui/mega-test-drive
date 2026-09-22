@@ -2,65 +2,71 @@
 @import "./fonts.css";
 
 /* ==========================================================================
-   MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION
+   MEGA EVENT TEST DRIVE 8 — ДАРХАН ХОТ
 
-   ── The direction: a survey of a pass ─────────────────────────────────────
-   The event is defined by a place — Морингийн даваа, a named mountain pass on
-   the Наадамчдын зам road — and by terrain. So the page is built as a field
-   record of that terrain: elevation contours, letterspaced reference labels, and
-   the facts set as a small data table. The "OFF-ROAD EDITION" claim is the thing
-   the document evidences.
+   ── The direction, carried over and re-grounded ───────────────────────────
+   Edition 7 was a field record of a mountain pass: hairlines, letterspaced
+   reference labels, tabular figures, and the facts set as a small data table.
+   That register is right for a distributor's registration page and it is kept
+   whole. What changed is the place. Edition 7 was sold on terrain and its one
+   graphic was that terrain surveyed; edition 8 is two days in a city, so the
+   drawing of the pass is gone rather than left behind pointing at nothing.
 
-   That is where the contour field comes from. It is not ornament: it is the
-   pass, drawn, and it is the only bold gesture on the page. Everything around it
-   is quiet.
+   What carries the page instead is the campaign lockup and one piece of real
+   information — the ten makes out on the day, set as a ruled index. Information
+   where the last edition had ornament.
 
-   ── Why the ground is dark, and why it is not black ───────────────────────
-   Dark is a constraint, not a preference. The supplied campaign lockup is a
-   white-to-silver chrome wordmark with no outline or dark keyline — measured
-   median luminance 255. Composited on a light mineral ground it very nearly
+   ── Why the ground is dark, and which dark ────────────────────────────────
+   Dark is a constraint, not a preference. The supplied lockup is a white-to-
+   chrome wordmark, measured mean luminance 255 across 1.4M opaque pixels, with
+   no outline or dark keyline. Composited on a light ground it very nearly
    disappears. The identity may not be recreated or recoloured, so the page it
    sits on has to be dark.
 
-   What did change is *which* dark. `basalt` is a green-black sampled from the
-   steppe at dusk in the supplied photograph, not a neutral #0A0A0A; type is
-   `bone`, a warm mineral off-white taken from the dust in the same frame, not
-   pure white; and `amber`, the sun flare, carries the contours. That frees the
-   campaign red to do exactly one job — the button — instead of being decoration.
+   Every value below is sampled from this edition's own artwork, the way edition
+   7's were sampled from its photograph — which is why they moved. Edition 7's
+   ground was a green-black taken from the steppe at dusk; this poster is Darkhan
+   at dusk, and its darkest decile measures #030308 over a sky running #050e31 to
+   #121d4b. So the ground is a deep indigo, the ink cooled to match, and the
+   accent is the sunset that sits over the city in the same frame.
    ========================================================================== */
 
 @theme {
   /* --- Ground -----------------------------------------------------------
      One value. There are no cards, no panels and no raised surfaces on this
-     page, so there is nothing for a second shade to be. */
-  --color-basalt: #12140f;
+     page, so there is nothing for a second shade to be. Indigo-black, from the
+     poster's night sky rather than a neutral #0A0A0A. */
+  --color-midnight: #090d1c;
 
   /* --- Ink -------------------------------------------------------------
-     `bone` is the mineral dust of the photograph. `sage` is its dried grass,
-     and is the only muted tone — it clears 4.6:1 on basalt, so it is safe for
-     real copy and not just for decoration. */
-  --color-bone: #e4dfd3;
-  --color-sage: #8f8d78;
+     `bone` is the poster's brightest quartile (#f2edec), pulled just off white
+     so it does not out-glare the chrome lockup. `slate` is its dusk haze, and is
+     the only muted tone — it clears 6.9:1 on midnight, so it is safe for real
+     copy and not just for decoration. */
+  --color-bone: #e9e7ec;
+  --color-slate: #949ab0;
 
-  /* --- Terrain ---------------------------------------------------------
-     The sun flare. Contours, the reference marks, and nothing else — never a
-     fill, never a button, never text at body size. */
-  --color-amber: #d98b2b;
+  /* --- Horizon ---------------------------------------------------------
+     The sunset over the city, measured at #d8725f across the poster's glow band
+     and opened up here so it cannot be mistaken for the campaign red. Reference
+     marks, rules and focus — never a fill, never a button, never text at body
+     size. 7.2:1. */
+  --color-amber: #dd8a3f;
 
   /* --- Action ----------------------------------------------------------
-     Inherited, not chosen: #e81820 is the exact red of the "Event" script and
-     the OFF-ROAD EDITION brush in the supplied lockup. It appears on this page
+     Inherited, not chosen: #cc2229 is the measured mean of the ДАРХАН ХОТ plate
+     in the supplied lockup, across 258k opaque pixels. It appears on this page
      only as the call to action, which is what makes it read as the action.
-     `deep` carries bone type at 5.6:1 and brightens to the logo red on hover. */
-  --color-signal: #e81820;
-  --color-signal-deep: #c9111a;
-  /* The same hue opened up for small text. #e81820 manages only 4.3:1 against
-     basalt, and validation copy is 13px — this clears 7:1. */
-  --color-signal-bright: #ff5b60;
+     `deep` carries white type at 7.5:1 and brightens to the plate red on hover. */
+  --color-signal: #cc2229;
+  --color-signal-deep: #a8151c;
+  /* The same hue opened up for small text. Validation copy is 13px, and the
+     plate red manages only 3.5:1 against midnight — this clears 6.9:1. */
+  --color-signal-bright: #ff6a6f;
 
   /* --- Edges ----------------------------------------------------------- */
-  --color-rule: rgb(228 223 211 / 0.14);
-  --color-rule-lit: rgb(228 223 211 / 0.3);
+  --color-rule: rgb(233 231 236 / 0.14);
+  --color-rule-lit: rgb(233 231 236 / 0.3);
 
   /* --- Type ------------------------------------------------------------- */
   --font-display: "Oswald", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
@@ -85,12 +91,12 @@
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
-    background-color: var(--color-basalt);
+    background-color: var(--color-midnight);
     color-scheme: dark;
   }
 
   body {
-    background-color: var(--color-basalt);
+    background-color: var(--color-midnight);
     color: var(--color-bone);
     font-family: var(--font-sans);
     /* Greyscale antialiasing thins glyphs, which is what light type on a dark
@@ -135,7 +141,7 @@
     /* The ground itself, not a lifted shade: the fields are ruled lines with no
        fill, so any other value paints a visible rectangle behind an autofilled
        value that was not there a moment before. */
-    -webkit-box-shadow: 0 0 0 1000px var(--color-basalt) inset;
+    -webkit-box-shadow: 0 0 0 1000px var(--color-midnight) inset;
     caret-color: var(--color-amber);
     transition: background-color 9999s ease-out 0s;
   }
@@ -146,10 +152,10 @@
    ========================================================================== */
 
 /*
- * The reference label. Every piece of micro-type on the page is one of these: the
- * distributor credit, the field names in the data table, the form labels, the
- * edition mark. 0.22em, because at this size a letterspaced Cyrillic label stops
- * reading as a word much past that.
+ * The reference label. Every piece of micro-type on the page is one of these:
+ * the distributor credit, the field names in the data table, the form labels,
+ * the edition mark. 0.22em, because at this size a letterspaced Cyrillic label
+ * stops reading as a word much past that.
  */
 @utility ref {
   font-family: var(--font-sans);
@@ -161,9 +167,9 @@
 }
 
 /*
- * Display. Oswald, uppercase, tight — the venue name and nothing else at this
+ * Display. Oswald, uppercase, tight — the landmark and nothing else at this
  * size. `0.01em` of tracking rather than none: condensed caps at 3rem+ need a
- * hair of air between verticals or "ИЙН" closes into a single mass.
+ * hair of air between verticals or "ААА" closes into a single mass.
  */
 @utility display {
   font-family: var(--font-display);
@@ -175,8 +181,8 @@
 }
 
 /*
- * The figures — dates and times. Oswald again, so the data table and the venue
- * read as one voice, but at body scale and lighter. Tabular by default.
+ * The figures — dates and times. Oswald again, so the data table and the
+ * landmark read as one voice, but at body scale and lighter. Tabular by default.
  */
 @utility figure-md {
   font-family: var(--font-display);
@@ -231,24 +237,28 @@
   animation-delay: var(--rise-delay, 0s);
 }
 
-/* The contour field draws itself in. `stroke-dashoffset` on a long dash pattern,
-   so each ring appears to be traced rather than faded — a survey being drawn.
-   Slow, because it is ambient and must never pull the eye off the facts. */
-@keyframes trace {
+/*
+ * The sticky call to action, on phones only.
+ *
+ * It slides up from under the viewport's edge rather than fading in on the spot:
+ * a bar that materialises over the page reads as an advert, and one that arrives
+ * from the edge it is docked to reads as part of the furniture. Transform and
+ * opacity only — both composited, so this never costs a layout pass while the
+ * page is being scrolled.
+ */
+@keyframes dock {
   from {
-    stroke-dashoffset: 1200;
     opacity: 0;
+    transform: translate3d(0, 100%, 0);
   }
   to {
-    stroke-dashoffset: 0;
     opacity: 1;
+    transform: none;
   }
 }
 
-.trace {
-  stroke-dasharray: 1200;
-  animation: trace 2.4s var(--ease-enter) both;
-  animation-delay: var(--trace-delay, 0s);
+.dock {
+  animation: dock 0.32s var(--ease-enter) both;
 }
 
 /* ==========================================================================
@@ -267,11 +277,5 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
     scroll-behavior: auto !important;
-  }
-
-  /* The traced contours need their dash pattern cleared too, or collapsing the
-     duration leaves them stroked with a 1200px gap — i.e. invisible. */
-  .trace {
-    stroke-dasharray: none;
   }
 }

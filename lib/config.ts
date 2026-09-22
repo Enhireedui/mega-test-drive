@@ -1,7 +1,7 @@
 import type { EventConfig } from "@/types/event";
 
 /**
- * SINGLE SOURCE OF TRUTH for MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION.
+ * SINGLE SOURCE OF TRUTH for MEGA EVENT TEST DRIVE 8 — ДАРХАН ХОТ.
  *
  * Every fact, name and asset path the page shows comes from here. Running the
  * next edition should mean editing this file and re-running
@@ -9,29 +9,30 @@ import type { EventConfig } from "@/types/event";
  *
  * ── Provenance ────────────────────────────────────────────────────────────
  * The facts are transcribed from the supplied poster
- * ("MEGA OFF-ROAD undsen poster 1x1 ratio.png") and from nowhere else. Its
- * black information bar reads, left to right:
+ * ("MEGA DARKHAN CITY undsen poster 1x1 ratio 2.png") and from nowhere else.
+ * Its header reads "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР / SAIN MOTORS"; its foot reads,
+ * left to right:
  *
- *     2026.08.22          Морингийн даваа       11:00 - 19:00
- *     Бямба гараг         Наадамчдын зам        цагийн хооронд
+ *     2026.10.01, 02      Дархан хот                       10:00 - 19:00
+ *     Пүрэв, Баасан гараг Дархан Плазагаас шинэ Дархан      цагийн хооронд
+ *                         явах замд
  *
- * and its header reads "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР / SAIN MOTORS".
- *
- * An early brief wrote the venue's second line as "Надамын зам". The poster
- * prints "Наадамчдын зам", and the poster is the source of truth — so that is
- * what is set here and what the page shows.
+ * and the band above that prints the ten makes listed in `marques`.
  *
  * ── What is deliberately absent ───────────────────────────────────────────
- * No price, no prizes, no giveaways, no refreshments, no entertainment, no
- * vehicle count, no capacity, no model list, and no promise of an SMS. None of
- * it has been supplied for this edition, and a registration page that invents
- * any of it is making a promise the organiser never made. Anything the
- * organiser confirms later belongs here, in this file, and nowhere else.
+ * No coach, no meeting point, no phone number, no price, no prizes, no
+ * giveaways, no capacity and no map link. Edition 7 had a shuttle timetable and
+ * a map URL because the organiser supplied them; this poster carries neither, so
+ * neither is on the page. A registration page that invents any of it is making a
+ * promise the organiser never made. Anything confirmed later belongs here, in
+ * this file, and nowhere else.
  */
 export const eventConfig: EventConfig = {
-  edition: 7,
-  title: "MEGA EVENT TEST DRIVE 7",
-  editionName: "OFF-ROAD EDITION",
+  edition: 8,
+  title: "MEGA EVENT TEST DRIVE 8",
+  /* What goes in the sheet's event column, as the organiser names the campaign. */
+  eventId: "MEGA TEST DRIVE 8",
+  editionName: "ДАРХАН ХОТ",
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://megatestdrive.sainmotors.mn",
 
   // Mongolia is UTC+8 all year.
@@ -47,126 +48,170 @@ export const eventConfig: EventConfig = {
   },
 
   /*
-   * The campaign lockup: MEGA Event / TEST DRIVE 7 / OFF-ROAD EDITION, chrome and
-   * red on transparency. This is the identity — it is placed, never recreated as
-   * type, never recoloured, never distorted, and nothing is layered over it.
+   * The campaign lockup: MEGA Event / TEST DRIVE 8 over the red ДАРХАН ХОТ
+   * plate, white-and-chrome on transparency. This is the identity — it is
+   * placed, never recreated as type, never recoloured, never distorted, and
+   * nothing is layered over it.
    */
-  lockup: { src: "/brand/mega-test-drive-7.png", width: 1800, height: 713 },
+  lockup: { src: "/brand/mega-test-drive-8.png", width: 1800, height: 727 },
 
   /*
    * The full poster, for social cards only — never painted on the page.
    *
-   * It is the only photography the site ships. There is no photographic band in the
-   * layout: the campaign lockup carries the page, and a link preview is the one
-   * place a flat image with baked-in type is the right answer.
+   * It is the only photography the site ships. There is no photographic band in
+   * the layout: the campaign lockup carries the page, and a link preview is the
+   * one place a flat image with baked-in type is the right answer.
    */
   poster: { src: "/event/poster.jpg", width: 1200, height: 1200 },
 
-  date: {
-    label: "2026.08.22",
-    // The poster sets "Бямба гараг" as one phrase; it is kept whole.
-    weekday: "Бямба гараг",
-    iso: "2026-08-22",
-  },
+  /*
+   * Two days. The poster sets them as one line — "2026.10.01, 02" over
+   * "Пүрэв, Баасан гараг" — and the form asks which one, because an organiser
+   * running a fleet on two separate days cannot staff them from a list of times
+   * alone.
+   */
+  days: [
+    { id: "10.01", label: "10.01", weekday: "Пүрэв", iso: "2026-10-01" },
+    { id: "10.02", label: "10.02", weekday: "Баасан", iso: "2026-10-02" },
+  ],
 
   /*
-   * One window, and it is not a booking. Edition 6 asked visitors to choose a
-   * three-hour slot; this edition does not, so the hours are a fact the page
-   * states rather than a control it renders.
-   *
-   * The en dash is the poster's hyphen set properly for screen type.
+   * Four arrival slots inside the open hours. Not a capacity and not a booking:
+   * the door is open 10:00–19:00 either day, and these are the times people are
+   * asked to aim for so the fleet is not all claimed at once.
    */
+  slots: [
+    { id: "10:00", label: "10:00" },
+    { id: "12:00", label: "12:00" },
+    { id: "14:00", label: "14:00" },
+    { id: "16:00", label: "16:00" },
+  ],
+
+  /* The en dash is the poster's hyphen set properly for screen type. */
   hours: {
-    label: "11:00 – 19:00",
+    label: "10:00 – 19:00",
     note: "цагийн хооронд",
-    opensAt: "11:00",
+    opensAt: "10:00",
     closesAt: "19:00",
   },
 
   venue: {
-    name: "Морингийн даваа",
-    approach: "Наадамчдын зам",
-    /* Supplied by the organiser. An empty string hides the link rather than
-       linking nowhere; no map destination may be fabricated. */
-    mapUrl: "https://maps.app.goo.gl/cbW2hEZnDVDuWD1C9",
-    /* Unknown, and left unknown. A mountain pass has no lookup-able address, and
-       a guessed coordinate would be published as fact in the page's structured
-       data. `null` omits the geo block entirely. */
+    /* For metadata and structured data. Never set as display type: the lockup's
+       red plate already prints ДАРХАН ХОТ. */
+    name: "Дархан хот",
+    /* What the page sets large, and what a driver actually navigates by. */
+    landmark: "Дархан Плаза",
+    approach: "Шинэ Дархан явах зам",
+    /* No map link was supplied for this edition. An empty string hides the link
+       rather than linking nowhere; no destination may be fabricated. */
+    mapUrl: "",
+    /* Unknown, and left unknown. A guessed coordinate would be published as fact
+       in the page's structured data. `null` omits the geo block entirely. */
     latitude: null,
     longitude: null,
     timeZone: "Asia/Ulaanbaatar",
   },
 
   /*
-   * The coach, exactly as supplied.
+   * The makes out on the day, in the poster's own order and spelling.
    *
-   * Three runs, each with a departure and the time it starts back — the two
-   * columns of the organiser's timetable ("BYD-аас хөдлөх" / "Морингын даваанаас
-   * хөдлөх") paired up, because a run out and the run home are one choice, not
-   * two. The form sets each pair on a single control rather than printing the
-   * table and then asking the question underneath it.
+   * Set as type, never as logos — no marque artwork was supplied, and redrawing
+   * ten manufacturers' wordmarks would put ten fake logos on a distributor's
+   * page. "212" carries the qualifier the poster prints beside it.
    */
-  transport: {
-    meetingPoint: "Цамбагарав баруун урд, BYD 4S showroom",
-    runs: [
-      { id: "10:00", departs: "10:00", returns: "12:00" },
-      { id: "13:00", departs: "13:00", returns: "15:00" },
-      { id: "16:00", departs: "16:00", returns: "18:00" },
-    ],
-    ownCarLabel: "Хувийн унаагаар",
-  },
+  marques: [
+    { name: "JETOUR" },
+    { name: "SOUEAST" },
+    { name: "CHERY" },
+    { name: "BYD" },
+    { name: "RIDDARA" },
+    { name: "AITO" },
+    { name: "212", note: "Special Edition" },
+    { name: "BESTUNE" },
+    { name: "RELY" },
+    { name: "MAXUS" },
+  ],
 } as const;
 
 /* ── derived values ───────────────────────────────────────────────────────── */
 
-/** "Морингийн даваа · Наадамчдын зам" */
+/** "Дархан хот · Дархан Плаза" — for metadata, where the city has to be named. */
 export function venueLabel(): string {
-  const { name, approach } = eventConfig.venue;
-  return approach ? `${name} · ${approach}` : name;
+  const { name, landmark } = eventConfig.venue;
+  return landmark ? `${name} · ${landmark}` : name;
 }
 
 /**
- * Epoch milliseconds for a "HH:mm" time on the event's day, in the venue's zone.
+ * "2026.10.01, 02" — both days, set the way the poster sets them.
+ *
+ * The year and the month are stated once and the second day carries only its
+ * own number. Repeating the month ("10.01, 10.02") is what a machine would
+ * write; the poster's form is shorter, unambiguous in context, and already the
+ * way the campaign has been published everywhere else.
+ */
+export function datesLabel(): string {
+  const [first, ...rest] = eventConfig.days;
+  if (!first) return "";
+  const dayNumber = (label: string) => label.split(".").pop() ?? label;
+  return [`2026.${first.label}`, ...rest.map((day) => dayNumber(day.label))].join(", ");
+}
+
+/**
+ * "Пүрэв, Баасан" — the weekdays alone.
+ *
+ * Without the trailing "гараг" the poster prints, because on the page this value
+ * sits against a label that already says ГАРАГ, and "Гараг: Пүрэв, Баасан гараг"
+ * says the word twice in one row.
+ */
+export function weekdaysLabel(): string {
+  return eventConfig.days.map((day) => day.weekday).join(", ");
+}
+
+/**
+ * Epoch milliseconds for a "HH:mm" time on a given ISO day, in the venue's zone.
  *
  * Pure — never reads the current time, so it is hydration-safe. Returns `null`
  * when the value cannot be parsed, so a caller can omit the field rather than
  * publish `Invalid Date`.
  */
-function eventTimestamp(time: string): number | null {
-  const { date, utcOffsetHours } = eventConfig;
+function eventTimestamp(iso: string, time: string): number | null {
+  const { utcOffsetHours } = eventConfig;
   const sign = utcOffsetHours < 0 ? "-" : "+";
   const zone = `${sign}${String(Math.abs(utcOffsetHours)).padStart(2, "0")}:00`;
-  const parsed = Date.parse(`${date.iso}T${time}:00${zone}`);
+  const parsed = Date.parse(`${iso}T${time}:00${zone}`);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** The moment the event opens, for structured data. */
+/** The moment the first day opens, for structured data. */
 export function eventStartTimestamp(): number | null {
-  return eventTimestamp(eventConfig.hours.opensAt);
+  const first = eventConfig.days[0];
+  return first ? eventTimestamp(first.iso, eventConfig.hours.opensAt) : null;
 }
 
-/** The moment it closes, on the same terms. */
+/** The moment the last day closes, on the same terms. */
 export function eventEndTimestamp(): number | null {
-  return eventTimestamp(eventConfig.hours.closesAt);
+  const last = eventConfig.days[eventConfig.days.length - 1];
+  return last ? eventTimestamp(last.iso, eventConfig.hours.closesAt) : null;
 }
 
-/** Sentinel for "I will drive myself", kept out of the shuttle id space. */
-export const OWN_CAR = "own-car" as const;
+/** Every answer the day question accepts. */
+export function dayChoices(): readonly string[] {
+  return eventConfig.days.map((day) => day.id);
+}
 
-/** Every answer the transport question accepts. */
-export function transportChoices(): readonly string[] {
-  return [...eventConfig.transport.runs.map((run) => run.id), OWN_CAR];
+/** Every answer the time question accepts. */
+export function slotChoices(): readonly string[] {
+  return eventConfig.slots.map((slot) => slot.id);
 }
 
 /**
- * What gets written to the sheet's transport column.
+ * What gets written to the sheet's day column.
  *
- * Spelled out rather than sent as a raw id: the organiser reads this column to
- * load a coach, and "10:00" alone does not say whether that is a seat booked or a
- * person arriving under their own steam.
+ * Spelled out rather than sent as a bare id: the organiser reads this column to
+ * staff two separate days, and "10.01" alone does not say which weekday that is
+ * at a glance.
  */
-export function transportLabel(choice: string): string {
-  if (choice === OWN_CAR) return eventConfig.transport.ownCarLabel;
-  const run = eventConfig.transport.runs.find((item) => item.id === choice);
-  return run ? `Автобус ${run.departs} (буцах ${run.returns})` : choice;
+export function dayLabel(choice: string): string {
+  const day = eventConfig.days.find((item) => item.id === choice);
+  return day ? `${day.label} (${day.weekday})` : choice;
 }

@@ -1,24 +1,25 @@
 /**
- * Domain types for the MEGA EVENT TEST DRIVE 7 registration flow.
+ * Domain types for the MEGA EVENT TEST DRIVE 8 registration flow.
  * Shared by the client form and the server action.
  *
- * ── Three questions ───────────────────────────────────────────────────────
- * A name, a phone number, and how they are getting there. Edition 6 also asked
- * which day and which three-hour window; this edition runs one day with the door
- * open 11:00–19:00, so there is nothing left to choose there. No model selector
- * either — it is a campaign registration, not a configurator.
+ * ── Four questions ────────────────────────────────────────────────────────
+ * A name, a phone number, which day, and what time. Edition 7 asked a name, a
+ * number and which coach; there is no coach this time, and there are two days
+ * instead of one, so the transport question became a when question.
  *
- * Transport is the exception, and it earns its place operationally rather than
- * editorially: a coach runs to the pass on a fixed timetable, and nobody can load
- * it without knowing who is on it.
+ * Day and time both earn their place operationally rather than editorially: the
+ * fleet is out on two separate days across an eleven-hour window, and nobody can
+ * staff that from a list of names.
  */
 
 /** Raw values held by the form. `honeypot` must stay empty for humans. */
 export interface RegistrationFormValues {
   fullName: string;
   phone: string;
-  /** A shuttle run id from lib/config.ts, or `OWN_CAR`. */
-  transport: string;
+  /** A day id from lib/config.ts (e.g. "10.01"). */
+  visitDate: string;
+  /** A slot id from lib/config.ts (e.g. "12:00"). */
+  visitTime: string;
   honeypot: string;
 }
 
@@ -43,20 +44,27 @@ export type RegistrationResult =
 /**
  * Payload contract shared with the Google Apps Script endpoint.
  *
- * Four fields. Edition 6 sent `visitDate` and `visitTime`; this edition asks for
- * neither, and sending the event's own day and hours back to the sheet would fill
- * two columns with the same constant on every row — a default dressed up as data.
- * What it does send is the transport answer, which is real per-person data.
+ * `timestamp`, `fullName` and `phone` keep the names they have had since edition
+ * 6 — the sheet's first three columns never changed and renaming them would
+ * break a working endpoint for nothing. `visitDate` and `visitTime` are edition
+ * 6's own names, brought back now that there is something to put in them again;
+ * they replace edition 7's `transport`.
+ *
+ * `event` is new, and is the one constant on the row: the organiser asked for
+ * the campaign to be identifiable in the sheet itself, so a tab that is ever
+ * copied or merged still says which event it holds.
  *
  * **This changes the upstream contract.** docs/apps-script.gs has been rewritten
  * to match and must be published as a NEW VERSION before this page can take a
- * registration: edition 6's deployed script rejects any body without a visit
- * date. See the header of that file.
+ * registration: edition 7's deployed script rejects any body without a
+ * transport. See the header of that file.
  */
 export interface RegistrationPayload {
   readonly timestamp: string;
   readonly fullName: string;
   readonly phone: string;
-  /** Spelled out for the organiser — see `transportLabel` in lib/config.ts. */
-  readonly transport: string;
+  /** Spelled out for the organiser — see `dayLabel` in lib/config.ts. */
+  readonly visitDate: string;
+  readonly visitTime: string;
+  readonly event: string;
 }

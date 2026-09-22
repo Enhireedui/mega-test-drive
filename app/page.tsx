@@ -1,6 +1,15 @@
+import { StickyRegister } from "@/components/registration/StickyRegister";
+import { MarqueIndex } from "@/components/sections/MarqueIndex";
 import { Masthead } from "@/components/sections/Masthead";
 import { SiteFooter } from "@/components/sections/SiteFooter";
-import { eventConfig, eventEndTimestamp, eventStartTimestamp, venueLabel } from "@/lib/config";
+import {
+  datesLabel,
+  eventConfig,
+  eventEndTimestamp,
+  eventStartTimestamp,
+  venueLabel,
+  weekdaysLabel,
+} from "@/lib/config";
 
 /*
  * Fully static. Every word comes from lib/config.ts and nothing is read back at
@@ -9,12 +18,15 @@ import { eventConfig, eventEndTimestamp, eventStartTimestamp, venueLabel } from 
  */
 
 function EventStructuredData() {
-  const { title, editionName, venue, presenter, siteUrl, poster } = eventConfig;
+  const { title, editionName, venue, presenter, siteUrl, poster, hours } = eventConfig;
   const start = eventStartTimestamp();
   const end = eventEndTimestamp();
 
   /*
    * Only claims the poster makes or this app enforces.
+   *
+   * One `Event` spanning both days rather than two: it is one campaign running
+   * 10.01–10.02, which is exactly what a start date and an end date describe.
    *
    * No `offers` block: nothing has told us what admission costs, and asserting a
    * price of zero in machine-readable form — where a search engine can surface it
@@ -28,22 +40,23 @@ function EventStructuredData() {
     name: `${title} — ${editionName}`,
     description:
       `${title} — ${editionName}. ${venueLabel()}, ` +
-      `${eventConfig.date.label} (${eventConfig.date.weekday}), ${eventConfig.hours.label}.`,
+      `${datesLabel()} (${weekdaysLabel()}), ${hours.label}.`,
     eventStatus: "https://schema.org/EventScheduled",
     eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
     ...(start === null ? {} : { startDate: new Date(start).toISOString() }),
     ...(end === null ? {} : { endDate: new Date(end).toISOString() }),
     location: {
       "@type": "Place",
-      name: venue.name,
+      name: venue.landmark,
       address: {
         "@type": "PostalAddress",
         streetAddress: venue.approach,
+        addressLocality: venue.name,
         addressCountry: "MN",
       },
-      /* The organiser's own map link, published only when one exists. A `geo` block
-         is still omitted: the coordinates remain unknown, and a guessed latitude
-         published as machine-readable fact is worse than no latitude. */
+      /* Published only when one exists. A `geo` block is still omitted: the
+         coordinates remain unknown, and a guessed latitude published as
+         machine-readable fact is worse than no latitude. */
       ...(venue.mapUrl ? { hasMap: venue.mapUrl } : {}),
     },
     organizer: {
@@ -64,16 +77,16 @@ function EventStructuredData() {
 }
 
 /**
- * A cover, the facts beside the form, and a colophon.
+ * A cover, the facts beside the form, the marque index, and a colophon.
  *
- * Two elements. The masthead carries the whole invitation — the credit, the
- * campaign lockup, the place, the three facts and the form — and the colophon signs
- * it. Nothing else: no navigation, no benefits section, no lineup, no FAQ, no brand
- * wall, no photographic band and no second call to action.
+ * Three elements. The masthead carries the whole invitation — the credit, the
+ * campaign lockup, the place, the three facts and the form — the index says
+ * which cars will be there, and the colophon signs it. Nothing else: no
+ * navigation, no benefits section, no FAQ, no photographic band and no second
+ * call to action beyond the one docked on phones.
  *
- * There is no photograph on the page at all, and that is the brief rather than an
- * omission. What carries it instead is the campaign lockup — chrome and red, and
- * dramatic on its own — over the contour field. The supplied photography still ships
+ * There is no photograph on the page at all, and that is the brief rather than
+ * an omission. What carries it is the campaign lockup. The supplied poster ships
  * as the social card, where a link preview has no room for real text.
  */
 export default function Page() {
@@ -83,16 +96,20 @@ export default function Page() {
 
       <a
         href="#registration"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-bone focus:px-5 focus:py-3 focus:text-[0.8125rem] focus:text-basalt"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-bone focus:px-5 focus:py-3 focus:text-[0.8125rem] focus:text-midnight"
       >
         Бүртгэл рүү шилжих
       </a>
 
       <main>
         <Masthead />
+        <MarqueIndex />
       </main>
 
       <SiteFooter />
+
+      {/* Phones only — see the component for why it exists and when it shows. */}
+      <StickyRegister targetId="registration" label="Бүртгүүлэх" />
     </>
   );
 }

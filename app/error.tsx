@@ -17,7 +17,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
       <div className="w-full max-w-md">
         <span aria-hidden="true" className="block h-px w-12 bg-amber" />
         <h1 className="heading mt-7 text-bone">Хуудсыг харуулах боломжгүй байна</h1>
-        <p className="mt-5 text-[0.9375rem] leading-relaxed text-sage">
+        <p className="mt-5 text-[0.9375rem] leading-relaxed text-slate">
           Энэ доголдол түр зуурын байж магадгүй. Дахин оролдоод үзнэ үү.
         </p>
         <ActionButton onClick={() => reset()} className="mt-10">

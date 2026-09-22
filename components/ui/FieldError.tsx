@@ -16,7 +16,7 @@ interface FieldErrorProps {
  * element is always mounted; only its opacity changes.
  *
  * Set in `signal-bright`, not `signal`: the campaign red manages only 4.3:1
- * against basalt, and this is 13px type.
+ * against midnight, and this is 13px type.
  */
 export function FieldError({ id, message }: FieldErrorProps) {
   return (

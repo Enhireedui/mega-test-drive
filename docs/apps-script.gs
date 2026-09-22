@@ -1,55 +1,56 @@
 /**
- * SAIN MOTORS — MEGA EVENT TEST DRIVE 7 (OFF-ROAD EDITION)
+ * SAIN MOTORS — MEGA EVENT TEST DRIVE 8 (ДАРХАН ХОТ)
  * Google Apps Script backend for the registration landing page.
  *
  * ══════════════════════════════════════════════════════════════════════════
  *  YOU MUST PUBLISH A NEW VERSION OF THIS SCRIPT BEFORE THE PAGE GOES LIVE.
  * ══════════════════════════════════════════════════════════════════════════
  *
- * Edition 7's form asks three questions — a name, a phone number, and which
- * coach the person is taking — and sends exactly those. Edition 6's script
- * requires a visit date and a visit time in every request and answers
- * `{ ok: false, reason: "invalid" }` when they are missing. If edition 6's script
- * is left deployed, EVERY registration on the new page fails. There is no
+ * Edition 8's form asks four questions — a name, a phone number, which of the
+ * two days, and what time — and sends exactly those plus the campaign's own
+ * name. Edition 7's script requires a `transport` field in every request and
+ * answers `{ ok: false, reason: "invalid" }` when it is missing. If edition 7's
+ * script is left deployed, EVERY registration on the new page fails. There is no
  * partial-compatibility mode: update this file and redeploy.
  *
- * Why the old fields went away: edition 6 ran over two days with three arrival
- * windows, so the day and the window were genuine answers. Edition 7 is one day,
- * 2026.08.22, with the door open 11:00–19:00. Writing that same pair into every
- * row would be a constant pretending to be data, so the page stopped sending it
- * and this script stopped asking.
+ * Why the fields moved: edition 7 ran one day at a mountain pass with a coach on
+ * a timetable, so "which coach" was the one genuine per-person answer. Edition 8
+ * runs 2026.10.01 and 10.02 in Darkhan with no coach laid on, so the question
+ * became "which day, and when" — two answers that are real data on every row.
  *
- * What replaced them is one genuinely per-person field: "Унаа". A coach runs from
- * the BYD 4S showroom on a fixed timetable, and column D is how you load it —
- * it reads either "Автобус 10:00 (буцах 12:00)" or "Хувийн унаагаар".
+ * `event` is the one constant written per row. It is redundant while this tab
+ * holds one campaign, and it is there on purpose: a tab that is later copied,
+ * exported or merged still says which event it holds.
  *
- * ── The same spreadsheet as edition 6, on its own tab ──────────────────────
- * SPREADSHEET_ID is edition 6's file, unchanged: the registrations stay in one
- * place and you keep working in the document you already have open. Edition 7's
- * rows land on their own tab inside it, created on the first registration, and
- * edition 6's "Sheet1" is never read or written.
+ * ── The same spreadsheet as editions 6 and 7, on its own tab ───────────────
+ * SPREADSHEET_ID is unchanged: the registrations stay in one place and you keep
+ * working in the document you already have open. Edition 8's rows land on their
+ * own tab inside it, created on the first registration. Earlier editions' tabs
+ * are never read or written.
  *
- * Two reasons the rows do not simply continue below edition 6's:
+ * Two reasons the rows do not simply continue below edition 7's:
  *
- *   1. The columns no longer line up. Edition 6 wrote the visit day into D and
- *      the visit time into E; this edition writes "Унаа" into D and leaves E to
- *      your team. Appending to that sheet would file coach times under
- *      "Ирэх өдөр" and leave a permanent seam in the middle of one column.
+ *   1. The columns no longer line up. Edition 7 wrote "Унаа" into D and left E
+ *      to your team; this edition writes the day into D, the time into E and the
+ *      campaign into F. Appending to that tab would file arrival times under a
+ *      column your team uses by hand.
  *   2. The duplicate check reads the whole phone column of the tab it writes to.
- *      Sharing a tab with edition 6 would make every returning visitor — anyone
- *      who signed up in August — be told they are already registered, and the
- *      page has no way to tell them apart from a genuine double submission.
+ *      Sharing a tab with edition 7 would tell everyone who registered in August
+ *      that they are already registered, and the page has no way to tell them
+ *      apart from a genuine double submission.
  *
  * ── Sheet layout (must match COLUMN_* below) ───────────────────────────────
  *   A  Бүртгүүлсэн огноо   written by this script
  *   B  Овог нэр            written by this script
  *   C  Утас                written by this script
- *   D  Унаа                written by this script
- *   E  Холбогдсон          left blank — for your team
- *   F  Ирсэн эсэх          left blank — for your team
- *   G  Тэмдэглэл           left blank — for your team
+ *   D  Ирэх өдөр           written by this script
+ *   E  Цаг                 written by this script
+ *   F  Эвент               written by this script
+ *   G  Холбогдсон          left blank — for your team
+ *   H  Ирсэн эсэх          left blank — for your team
+ *   I  Тэмдэглэл           left blank — for your team
  *
- * Columns E–G are never touched, so notes added by hand survive every write.
+ * Columns G–I are never touched, so notes added by hand survive every write.
  *
  * ── Deployment (must be done from the sheet owner's Google account) ────────
  * 1. Open the sheet ▸ Extensions ▸ Apps Script.
@@ -69,7 +70,7 @@
  * common reason a change appears to do nothing.
  *
  * ── Contract ──────────────────────────────────────────────────────────────
- * POST  body: { timestamp, fullName, phone, transport }
+ * POST  body: { timestamp, fullName, phone, visitDate, visitTime, event }
  *       ->    { ok: true } | { ok: false, reason: "duplicate" | "invalid" |
  *                                                "busy" }
  *
@@ -82,13 +83,14 @@
  * write the same person twice.
  */
 
-/* Edition 6's spreadsheet. Edition 7 writes into the same file, on SHEET_NAME. */
+/* The same spreadsheet as editions 6 and 7. Edition 8 writes on SHEET_NAME. */
 var SPREADSHEET_ID = "1mP1Z-Kzs9IVhOJMEKJ-42TLGgKmASnXuNevielY7fgw";
 
-/* Edition 7's own tab. Created on the first registration if it is not there.
-   Edition 6's rows live on "Sheet1" and are left alone. Renaming the tab by hand
-   in Sheets means renaming it here too, or the next write recreates it empty. */
-var SHEET_NAME = "Тест драйв 7";
+/* Edition 8's own tab. Created on the first registration if it is not there.
+   Earlier editions' rows live on their own tabs and are left alone. Renaming the
+   tab by hand in Sheets means renaming it here too, or the next write recreates
+   it empty. */
+var SHEET_NAME = "Тест драйв 8";
 
 var TIME_ZONE = "Asia/Ulaanbaatar";
 var LOCK_TIMEOUT_MS = 20000;
@@ -97,13 +99,17 @@ var LOCK_TIMEOUT_MS = 20000;
 var COLUMN_TIMESTAMP = 1;
 var COLUMN_NAME = 2;
 var COLUMN_PHONE = 3;
-var COLUMN_TRANSPORT = 4;
+var COLUMN_VISIT_DATE = 4;
+var COLUMN_VISIT_TIME = 5;
+var COLUMN_EVENT = 6;
 
 var HEADERS = [
   "Бүртгүүлсэн огноо",
   "Овог нэр",
   "Утас",
-  "Унаа",
+  "Ирэх өдөр",
+  "Цаг",
+  "Эвент",
   "Холбогдсон",
   "Ирсэн эсэх",
   "Тэмдэглэл"
@@ -168,13 +174,15 @@ function doPost(event) {
 
   var fullName = String(body.fullName || "").trim();
   var phone = digitsOnly_(body.phone || "");
-  var transport = String(body.transport || "").trim();
+  var visitDate = String(body.visitDate || "").trim();
+  var visitTime = String(body.visitTime || "").trim();
+  var eventName = String(body.event || "").trim();
   var submittedAt = body.timestamp ? new Date(body.timestamp) : new Date();
   if (isNaN(submittedAt.getTime())) submittedAt = new Date();
 
   /* Mongolian mobile numbers are 8 digits. The site validates this too; the
      check is repeated here because a webhook URL is a public endpoint. */
-  if (!fullName || phone.length !== 8 || !transport) {
+  if (!fullName || phone.length !== 8 || !visitDate || !visitTime) {
     return json_({ ok: false, reason: "invalid" });
   }
 
@@ -201,9 +209,11 @@ function doPost(event) {
     /* Leading apostrophe keeps Sheets from eating a leading zero or reading the
        number as a float. */
     row[COLUMN_PHONE - 1] = "'" + phone;
-    /* Leading apostrophe again: "10:00" inside the label is enough for Sheets to
-       try to reinterpret the cell in some locales. */
-    row[COLUMN_TRANSPORT - 1] = "'" + transport;
+    /* Leading apostrophe again: "10.01" and "12:00" are both shapes Sheets will
+       happily reinterpret as a date or a duration in some locales. */
+    row[COLUMN_VISIT_DATE - 1] = "'" + visitDate;
+    row[COLUMN_VISIT_TIME - 1] = "'" + visitTime;
+    row[COLUMN_EVENT - 1] = eventName || "MEGA TEST DRIVE 8";
 
     sheet.appendRow(row);
     SpreadsheetApp.flush();

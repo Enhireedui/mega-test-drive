@@ -1,49 +1,57 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { registerAttendee } from "@/actions/register";
+import { REGISTERED_EVENT } from "@/components/registration/StickyRegister";
 import { ActionButton } from "@/components/ui/ActionButton";
+import { ChoiceGroup } from "@/components/ui/ChoiceGroup";
 import { TextField } from "@/components/ui/TextField";
-import { TransportChoice } from "@/components/ui/TransportChoice";
-import { eventConfig, transportLabel, venueLabel } from "@/lib/config";
+import { dayLabel, eventConfig, venueLabel } from "@/lib/config";
 import { formatPhoneInput, messageForErrorCode, registrationSchema } from "@/lib/validation";
 import type { RegistrationFormValues } from "@/types/registration";
 
 const EMPTY_FORM: RegistrationFormValues = {
   fullName: "",
   phone: "",
-  transport: "",
+  visitDate: "",
+  visitTime: "",
   honeypot: "",
 };
 
 /**
  * The confirmation.
  *
- * It replaces the form in place — no dialog, no overlay, no focus trap, no scroll
- * lock, and nothing to dismiss. The form is a column in a composition, so the
- * calmest possible confirmation is that column quietly becoming the answer.
+ * It replaces the form in place — no dialog, no overlay, no focus trap, no
+ * scroll lock, and nothing to dismiss. The form is a column in a composition, so
+ * the calmest possible confirmation is that column quietly becoming the answer.
  *
  * No tick graphic, no colour flood, no confetti. An amber reference rule, the
  * words, and the three facts worth re-reading, set in the same label-and-value
  * rhythm as the table on the left so the two read as one document. Announced
- * through the live region its parent keeps mounted, rather than by stealing focus.
+ * through the live region its parent keeps mounted, rather than by stealing
+ * focus.
  */
-function Confirmation({ headingId, transport }: { headingId: string; transport: string }) {
-  const { title, date, hours } = eventConfig;
-
+function Confirmation({
+  headingId,
+  visitDate,
+  visitTime,
+}: {
+  headingId: string;
+  visitDate: string;
+  visitTime: string;
+}) {
   /*
-   * The coach is read back and the name and number are not. They typed those a
-   * moment ago; the run they picked is the one answer they may genuinely need to
-   * check later, and it is the only one with a time attached to it.
+   * The day and the time are read back; the name and the number are not. They
+   * typed those a moment ago, and the appointment they just made is the one
+   * answer they may genuinely need to check later.
    */
   const rows = [
-    { label: "Огноо", value: date.label, numeric: true },
-    { label: "Цаг", value: hours.label, numeric: true },
-    { label: "Газар", value: venueLabel(), numeric: false },
-    { label: "Унаа", value: transportLabel(transport), numeric: false },
+    { label: "Өдөр", value: dayLabel(visitDate), numeric: true },
+    { label: "Цаг", value: visitTime, numeric: true },
+    { label: "Байршил", value: venueLabel(), numeric: false },
   ];
 
   return (
@@ -54,14 +62,14 @@ function Confirmation({ headingId, transport }: { headingId: string; transport: 
         Бүртгэл амжилттай
       </h2>
 
-      <p className="mt-4 text-[0.9375rem] leading-relaxed text-sage">
-        {title}-д бүртгүүлсэнд баярлалаа.
+      <p className="mt-4 text-[0.9375rem] leading-relaxed text-slate">
+        Бүртгэл баталгаажлаа. Товлосон цагтаа ирээрэй.
       </p>
 
       <dl className="mt-9 border-t border-rule">
         {rows.map((row) => (
           <div key={row.label} className="flex items-baseline gap-6 border-b border-rule py-3.5">
-            <dt className="ref w-14 shrink-0 pt-0.5 text-sage">{row.label}</dt>
+            <dt className="ref w-20 shrink-0 pt-0.5 text-slate">{row.label}</dt>
             <dd
               className="font-display text-[1.0625rem] tracking-[0.02em] text-bone"
               {...(row.numeric ? { "data-numeric": "" } : {})}
@@ -76,12 +84,13 @@ function Confirmation({ headingId, transport }: { headingId: string; transport: 
 }
 
 /**
- * Name, number, send.
+ * Day, time, name, number, send.
  *
- * Three questions, one button, no steps. The event runs on one day inside one
- * window and the fleet is not picked from a list, so neither is asked. The one
- * thing that is asked beyond a name and a number is which coach — because the
- * organiser runs one on a timetable and cannot load it otherwise.
+ * Four questions, one button, no steps. The two choices come first and the two
+ * text fields after them: picking a day and a time is two taps and no keyboard,
+ * so the form opens with the part that costs nothing and leaves the typing until
+ * someone has already committed to a time. It also means the keyboard, when it
+ * finally appears, is not covering a control the visitor still has to reach.
  *
  * On failure the entered values stay exactly where they are; the form is never
  * reset on an error path, only replaced on success.
@@ -107,19 +116,30 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
 
   /*
    * Registered in visual order: React Hook Form focuses the first *registered*
-   * field carrying an error, so registering the phone first would send focus past
-   * the name field on a failed submit.
+   * field carrying an error, so registering the phone first would send focus
+   * past the name field on a failed submit.
    */
   const nameField = register("fullName");
   const phoneField = register("phone");
 
   /*
    * `useWatch`, not the `watch()` returned by `useForm`. `watch()` hands back a
-   * fresh function on every render, which React Compiler cannot memoize safely, so
-   * it bails out of optimising this whole component. `useWatch` subscribes to this
-   * one field and re-renders only when it changes.
+   * fresh function on every render, which React Compiler cannot memoize safely,
+   * so it bails out of optimising this whole component. `useWatch` subscribes to
+   * these fields and re-renders only when they change.
    */
-  const transport = useWatch({ control, name: "transport" });
+  const visitDate = useWatch({ control, name: "visitDate" });
+  const visitTime = useWatch({ control, name: "visitTime" });
+
+  /* Tells the docked phone CTA to stand down — see StickyRegister. */
+  useEffect(() => {
+    if (confirmed) window.dispatchEvent(new Event(REGISTERED_EVENT));
+  }, [confirmed]);
+
+  const choose = (field: "visitDate" | "visitTime") => (next: string) => {
+    setValue(field, next, { shouldValidate: true, shouldDirty: true });
+    setSubmissionError(null);
+  };
 
   const onSubmit = async (values: RegistrationFormValues) => {
     if (submitLock.current) return;
@@ -177,7 +197,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
       </p>
 
       {confirmed ? (
-        <Confirmation headingId={headingId} transport={transport} />
+        <Confirmation headingId={headingId} visitDate={visitDate} visitTime={visitTime} />
       ) : (
         <form noValidate onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
           <h2 id={headingId} className="heading text-bone">
@@ -193,8 +213,33 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
               between validation and the write. */}
           <fieldset
             disabled={isSubmitting}
-            className="mt-9 min-w-0 space-y-7 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-50"
+            className="mt-8 min-w-0 space-y-6 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-50"
           >
+            <ChoiceGroup
+              label="Өдөр"
+              options={eventConfig.days.map((day) => ({
+                value: day.id,
+                primary: day.label,
+                secondary: day.weekday,
+                numeric: true,
+              }))}
+              value={visitDate}
+              onChange={choose("visitDate")}
+              error={errors.visitDate?.message}
+            />
+
+            <ChoiceGroup
+              label="Цаг"
+              options={eventConfig.slots.map((slot) => ({
+                value: slot.id,
+                primary: slot.label,
+                numeric: true,
+              }))}
+              value={visitTime}
+              onChange={choose("visitTime")}
+              error={errors.visitTime?.message}
+            />
+
             <TextField
               label="Нэр"
               autoComplete="name"
@@ -220,15 +265,6 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
                 void phoneField.onChange(event);
               }}
             />
-
-            <TransportChoice
-              value={transport}
-              onChange={(next) => {
-                setValue("transport", next, { shouldValidate: true, shouldDirty: true });
-                setSubmissionError(null);
-              }}
-              error={errors.transport?.message}
-            />
           </fieldset>
 
           {submissionError ? (
@@ -245,7 +281,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
             fullWidth
             loading={isSubmitting}
             loadingLabel="Илгээж байна"
-            className="mt-9"
+            className="mt-8"
           >
             Бүртгүүлэх
           </ActionButton>

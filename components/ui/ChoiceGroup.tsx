@@ -3,59 +3,52 @@
 import { useId, useRef } from "react";
 
 import { FieldError } from "@/components/ui/FieldError";
-import { OWN_CAR, eventConfig } from "@/lib/config";
 
-interface TransportChoiceProps {
+export interface Choice {
+  /** Stable id, and the value submitted. */
+  readonly value: string;
+  /** The large line on the plate. */
+  readonly primary: string;
+  /** The quiet second line, when there is one. */
+  readonly secondary?: string | null;
+  /** Set for values that are figures, so they sit on tabular numerals. */
+  readonly numeric?: boolean;
+}
+
+interface ChoiceGroupProps {
+  label: string;
+  options: readonly Choice[];
   value: string;
   onChange: (value: string) => void;
   error?: string | undefined;
 }
 
 /**
- * How they are getting there.
+ * A set of plates, one of which is chosen.
  *
- * ── The timetable *is* the control ───────────────────────────────────────
- * The organiser supplied this as a two-column table — departures from the
- * showroom, departures back from the pass — followed by a separate question
- * asking which one you want. Printing the table and then asking underneath it
- * would make a visitor hold three pairs of times in their head and then map an
- * answer onto them.
- *
- * So each row of the table becomes one control carrying both of its times: the
- * departure large, the return underneath as a quiet second line. Nothing is lost
- * and there is no table on the page. The fourth option is for people driving
- * themselves, and it is deliberately last and visually identical — arriving under
- * your own steam is an answer, not an opt-out.
- *
- * The group is labelled "АВТОБУС" because that is what three of the four options
- * are and what the timetable is about. The sheet column and the confirmation stay
- * labelled "Унаа", which has to cover the fourth answer as well.
+ * Edition 7 had one of these — the coach timetable — written as a bespoke
+ * component. Edition 8 asks two questions in this shape (which day, what time),
+ * so the control is the general one and the questions are data. Two instances,
+ * one implementation, one set of keyboard semantics to get right.
  *
  * ── The control ──────────────────────────────────────────────────────────
  * A real `radiogroup`: arrow keys move between options, only the selected one is
  * a tab stop, and each is a `button` with `role="radio"` rather than a styled
- * `<input>` so the plate can carry two lines of type.
+ * `<input>` so a plate can carry two lines of type.
  *
  * Selection fills with **bone** — the ground's opposite — not with red. Red on
- * this page means "this button submits", and a chosen coach is not that. Filling
- * with the strongest available contrast also means the selected state needs no
- * tick, no border and no shadow to read.
+ * this page means "this button submits", and a chosen time is not that. Filling
+ * with the strongest available contrast also means the selected state carries
+ * without a tick, and `aria-checked` carries it for anyone not seeing the fill,
+ * so colour is never the only signal.
+ *
+ * 56px minimum on every plate: the brief's touch floor, and enough for the two
+ * lines the day options carry.
  */
-export function TransportChoice({ value, onChange, error }: TransportChoiceProps) {
+export function ChoiceGroup({ label, options, value, onChange, error }: ChoiceGroupProps) {
   const rawId = useId();
   const labelId = `${rawId}-label`;
   const errorId = `${rawId}-error`;
-  const { transport } = eventConfig;
-
-  const options = [
-    ...transport.runs.map((run) => ({
-      value: run.id,
-      primary: run.departs,
-      secondary: `Буцах ${run.returns}`,
-      numeric: true,
-    })),
-    { value: OWN_CAR, primary: transport.ownCarLabel, secondary: null, numeric: false },
-  ];
 
   const buttons = useRef<Array<HTMLButtonElement | null>>([]);
   const selectedIndex = options.findIndex((option) => option.value === value);
@@ -81,14 +74,8 @@ export function TransportChoice({ value, onChange, error }: TransportChoiceProps
 
   return (
     <div>
-      <p id={labelId} className="ref text-sage">
-        Автобус
-      </p>
-
-      {/* The meeting point, once, under the label — it is the same for every
-          coach, so repeating it on three controls would be noise. */}
-      <p className="mt-2 text-[0.8125rem] leading-relaxed text-sage">
-        {transport.meetingPoint}-оос хөдөлнө.
+      <p id={labelId} className="ref text-slate">
+        {label}
       </p>
 
       <div
@@ -96,7 +83,7 @@ export function TransportChoice({ value, onChange, error }: TransportChoiceProps
         aria-labelledby={labelId}
         aria-describedby={error ? errorId : undefined}
         onKeyDown={handleKeyDown}
-        className="mt-4 grid grid-cols-2 gap-2"
+        className="mt-3 grid grid-cols-2 gap-2.5"
       >
         {options.map((option, index) => {
           const selected = option.value === value;
@@ -114,28 +101,27 @@ export function TransportChoice({ value, onChange, error }: TransportChoiceProps
               tabIndex={selected || (selectedIndex === -1 && index === 0) ? 0 : -1}
               onClick={() => onChange(option.value)}
               className={[
-                /* 4px radius and a hairline, matching the button and the plate —
+                /* 4px radius and a hairline, matching the button and the rules —
                    this page has no rounded cards for a control to imitate. */
-                "flex min-h-[3.25rem] flex-col items-start justify-center gap-1 rounded border px-3.5 py-2.5 text-left",
+                "flex min-h-14 flex-col items-start justify-center gap-1 rounded border px-4 py-3 text-left",
                 "transition-[background-color,border-color,color] duration-200 ease-enter",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber",
                 selected
-                  ? "border-bone bg-bone text-basalt"
-                  : "border-rule text-bone hover:border-rule-lit hover:bg-bone/[0.04]",
+                  ? "border-bone bg-bone text-midnight"
+                  : "border-rule text-bone hover:border-rule-lit hover:bg-bone/[0.05]",
               ].join(" ")}
             >
               <span
-                className="font-display text-[1.0625rem] font-medium leading-none tracking-[0.02em]"
+                className="font-display text-[1.125rem] font-medium leading-none tracking-[0.02em]"
                 {...(option.numeric ? { "data-numeric": "" } : {})}
               >
                 {option.primary}
               </span>
               {option.secondary ? (
                 <span
-                  data-numeric=""
                   className={[
                     "text-[0.75rem] leading-none",
-                    selected ? "text-basalt/60" : "text-sage",
+                    selected ? "text-midnight/60" : "text-slate",
                   ].join(" ")}
                 >
                   {option.secondary}

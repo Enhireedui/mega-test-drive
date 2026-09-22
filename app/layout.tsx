@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 
-import { eventConfig, venueLabel } from "@/lib/config";
+import { datesLabel, eventConfig, venueLabel, weekdaysLabel } from "@/lib/config";
 
 import "./globals.css";
 
@@ -13,12 +13,12 @@ const PRELOADED_FONTS = [
   "inter-cyrillic-ext",
 ] as const;
 
-const { title, editionName, date, hours, presenter, siteUrl, poster } = eventConfig;
+const { title, editionName, hours, presenter, siteUrl, poster } = eventConfig;
 
 const fullName = `${title} — ${editionName}`;
 
 const description =
-  `${fullName}. ${date.label} (${date.weekday}), ${hours.label} — ${venueLabel()}. ` +
+  `${fullName}. ${datesLabel()} (${weekdaysLabel()}), ${hours.label} — ${venueLabel()}. ` +
   `${presenter.name}, ${presenter.role.toLowerCase()}. Онлайнаар бүртгүүлээрэй.`;
 
 export const metadata: Metadata = {
@@ -34,7 +34,7 @@ export const metadata: Metadata = {
     title,
     "MEGA EVENT TEST DRIVE",
     editionName,
-    "off-road",
+    "Дархан",
     "туршилтын жолоодлого",
     "тест драйв",
     venueLabel(),
@@ -64,10 +64,10 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  /* One dark surface throughout, so the browser chrome should match the basalt
+  /* One dark surface throughout, so the browser chrome should match the indigo
      ground rather than framing it in white. */
   colorScheme: "dark",
-  themeColor: "#12140f",
+  themeColor: "#090d1c",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -87,14 +87,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="min-h-svh">
         {/*
-         * Everything on the page paints without JavaScript — the entrance and the
-         * contour field are CSS animations, and the identity, the facts and the
-         * plate are markup. The form is the exception: it submits through a server
-         * action, so without a bundle the button genuinely cannot work, and saying
-         * so is more use than leaving someone tapping it.
+         * Everything on the page paints without JavaScript — the entrance is a
+         * CSS animation, and the identity, the facts, the marque index and the
+         * plates are markup. The form is the exception: it submits through a
+         * server action, so without a bundle the button genuinely cannot work,
+         * and saying so is more use than leaving someone tapping it.
          */}
         <noscript>
-          <p className="border-b border-rule px-6 py-3 text-center text-[0.8125rem] text-sage">
+          <p className="border-b border-rule px-6 py-3 text-center text-[0.8125rem] text-slate">
             Бүртгэлийн формыг ажиллуулахын тулд JavaScript-ийг зөвшөөрнө үү.
           </p>
         </noscript>

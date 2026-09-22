@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { transportChoices } from "@/lib/config";
+import { dayChoices, slotChoices } from "@/lib/config";
 
 /**
  * Mongolian mobile numbers are 8 digits and begin with 5–9
@@ -27,29 +27,24 @@ export function formatPhoneInput(value: string): string {
 /**
  * Inline field messages.
  *
- * Full sentences with a closing full stop, which is what the brief specifies:
- * with only two fields on the page an error is a rare event and reads as a
- * remark, not as a terse label under a control.
+ * Full sentences with a closing full stop: on a form this short an error is a
+ * rare event and reads as a remark, not as a terse label under a control.
  */
 const messages = {
   fullNameRequired: "Нэрээ оруулна уу.",
   fullNameInvalid: "Зөвхөн үсэг, зай болон зураас оруулах боломжтой.",
   phoneRequired: "Утасны дугаараа оруулна уу.",
   phoneInvalid: "Утасны дугаараа зөв оруулна уу.",
-  transportRequired: "Унаагаа сонгоно уу.",
+  visitDateRequired: "Ирэх өдрөө сонгоно уу.",
+  visitTimeRequired: "Цагаа сонгоно уу.",
 } as const;
 
 /**
- * Three fields, and the trap.
+ * Four fields, and the trap.
  *
- * No `visitDate`, no `visitTime`, no model: the event is one day inside one
- * window and the fleet is not chosen from a list. `transport` is the one question
- * beyond a name and a number, and it is asked because the organiser runs a coach
- * on a timetable and cannot load it otherwise.
- *
- * It is validated against the ids in lib/config.ts rather than a hardcoded list,
- * so editing the timetable there cannot leave a stale rule here that rejects a
- * run the form is offering.
+ * `visitDate` and `visitTime` are validated against the ids in lib/config.ts
+ * rather than a hardcoded list, so editing the days or the slots there cannot
+ * leave a stale rule here that rejects an option the form is offering.
  */
 export const registrationSchema = z.object({
   fullName: z
@@ -63,9 +58,12 @@ export const registrationSchema = z.object({
     .trim()
     .min(1, messages.phoneRequired)
     .refine((value) => MN_MOBILE_PATTERN.test(normalizePhone(value)), messages.phoneInvalid),
-  transport: z
+  visitDate: z
     .string()
-    .refine((value) => transportChoices().includes(value), messages.transportRequired),
+    .refine((value) => dayChoices().includes(value), messages.visitDateRequired),
+  visitTime: z
+    .string()
+    .refine((value) => slotChoices().includes(value), messages.visitTimeRequired),
   // Bots fill every field they find; humans never see this one.
   honeypot: z.string().max(0),
 });
@@ -78,12 +76,12 @@ export function normalizeFullName(value: string): string {
 /**
  * User-facing copy for every failure path. Never leaks technical detail.
  *
- * Most codes answer with the one sentence the brief specifies, because from the
- * visitor's chair a timeout, a bad gateway and an unparseable response are the
- * same event with the same remedy: it did not go through, try again. The three
- * that say something else are the three where "try again" would be wrong advice
- * — an already-registered number, a dead connection, and a misconfigured
- * endpoint that will keep failing until someone fixes it.
+ * Most codes answer with one sentence, because from the visitor's chair a
+ * timeout, a bad gateway and an unparseable response are the same event with the
+ * same remedy: it did not go through, try again. The three that say something
+ * else are the three where "try again" would be wrong advice — an
+ * already-registered number, a dead connection, and a misconfigured endpoint
+ * that will keep failing until someone fixes it.
  */
 const GENERIC_FAILURE = "Бүртгэл илгээхэд алдаа гарлаа. Дахин оролдоно уу.";
 
@@ -91,7 +89,7 @@ const errorCopy: Record<string, string> = {
   VALIDATION: "Бөглөсөн мэдээллээ шалгаад дахин оролдоно уу.",
   DUPLICATE: "Энэ утасны дугаараар аль хэдийн бүртгүүлсэн байна.",
   TIMEOUT: GENERIC_FAILURE,
-  NETWORK: "Интернэт холболт тасалдсан байна. Дахин оролдоно уу.",
+  NETWORK: "Интернет холболт тасалдсан байна. Дахин оролдоно уу.",
   UPSTREAM: GENERIC_FAILURE,
   CONFIG: "Бүртгэлийн систем түр хугацаанд ажиллахгүй байна. Та бидэнтэй шууд холбогдоно уу.",
   UNKNOWN: GENERIC_FAILURE,

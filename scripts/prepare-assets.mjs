@@ -1,32 +1,34 @@
 /**
- * Asset pipeline for MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION.
+ * Asset pipeline for MEGA EVENT TEST DRIVE 8 — ДАРХАН ХОТ.
  *
- * The artwork supplied for this edition is four files in `../testdriver7`:
+ * The artwork supplied for this edition is two files in `../testdrive8`:
  *
- *  - "Logo-MT7-OFF.png"      the campaign lockup — MEGA Event / TEST DRIVE 7 /
- *                            OFF-ROAD EDITION — chrome-and-red on transparency,
- *                            1845×731. This is the page's signature and is never
- *                            rebuilt as type.
- *  - "Logo-MT7-OFF-2.png"    the SAIN MOTORS lockup on transparency, with
- *                            "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР" set above the wordmark.
- *  - "MEGA OFF-ROAD undsen poster 1x1 ratio.png"      3543², the feed poster.
- *  - "MEGA OFF-ROAD undsen poster story ratio.png"    2362×4198, the story cut.
+ *  - "MEGA TEST DRIVE 8.png"   the campaign lockup — MEGA Event / TEST DRIVE 8
+ *                              over the red ДАРХАН ХОТ plate — white-to-chrome
+ *                              and red on transparency, 5315×2147. This is the
+ *                              page's signature and is never rebuilt as type.
+ *  - "MEGA DARKHAN CITY undsen poster 1x1 ratio 2.png"   3543², the feed poster.
  *
- * The page itself carries no photography — the campaign lockup is its whole visual
- * argument — so all this script produces is the two lockups and one social card.
+ * The page carries no photography — the campaign lockup is its whole visual
+ * argument — so all this script produces is the lockup and one social card.
  *
- * The posters are a vertical sandwich: sponsor lockup, campaign lockup, the fleet on
- * grass, then a black bar carrying the date, place and hours. Three of those four
- * layers are typography the page sets as real text, so neither poster can be shipped
- * as a hero. Only the square one is kept, whole, as the social card — a link preview
- * is the one place baked-in type is the right answer.
+ * ── The poster is information, not artwork ────────────────────────────────
+ * It is a vertical sandwich: the SAIN MOTORS credit, the campaign lockup, the
+ * fleet on wet asphalt over Darkhan at dusk, a marque list, then a bar carrying
+ * the dates, the place and the hours. Every one of those layers except the
+ * photograph is typography this page sets as real text, so the poster cannot be
+ * a hero, a background or a crop. It is kept whole, once, as the social card —
+ * a link preview is the one place baked-in type is the right answer.
  *
- * ("MEGA OFF-ROAD Page cover.png" is also supplied and is deliberately unused. It was
- * placed at the top of the page and measured: at 2.68:1 it pushed the submit button
- * below the fold at every width, and cropping it to a band was cut on request.)
+ * ── What is NOT rebuilt here ──────────────────────────────────────────────
+ * `public/brand/sain-motors.png`. The distributor wordmark did not change
+ * between editions and no new source for it was supplied, so the committed
+ * asset is kept as it is. Edition 7's script derived it from artwork that is no
+ * longer on disk; rebuilding from a file that does not exist is how a pipeline
+ * silently drops a logo.
  *
  * Run:  node scripts/prepare-assets.mjs [--analyze]
- * Source override:  MTD7_SOURCE_DIR="D:/path/to/art" node scripts/prepare-assets.mjs
+ * Source override:  MTD8_SOURCE_DIR="D:/path/to/art" node scripts/prepare-assets.mjs
  *
  * Outputs are committed, so this only re-runs when the artwork changes.
  * `--analyze` prints every measurement it derives and writes nothing.
@@ -38,18 +40,17 @@ import path from "node:path";
 import sharp from "sharp";
 
 const SOURCE_DIR =
-  process.env.MTD7_SOURCE_DIR ?? path.resolve(import.meta.dirname, "..", "..", "testdriver7");
+  process.env.MTD8_SOURCE_DIR ?? path.resolve(import.meta.dirname, "..", "..", "testdrive8");
 
 const PUBLIC_DIR = path.resolve(import.meta.dirname, "..", "public");
 const ANALYZE = process.argv.includes("--analyze");
 
-/** The posters are 14MP and 10MP; libvips' default ceiling is lower. */
+/** The poster is 12.5MP; libvips' default ceiling is lower. */
 const OPEN = { limitInputPixels: false, unlimited: true };
 
 const SOURCES = {
-  lockup: "Logo-MT7-OFF.png",
-  sain: "Logo-MT7-OFF-2.png",
-  posterSquare: "MEGA OFF-ROAD undsen poster 1x1 ratio.png",
+  lockup: "MEGA TEST DRIVE 8.png",
+  posterSquare: "MEGA DARKHAN CITY undsen poster 1x1 ratio 2.png",
 };
 
 const log = (...parts) => console.log(...parts);
@@ -66,9 +67,9 @@ async function ensureDir(dir) {
 
 /**
  * How much ink each row and column of an image carries, read off the alpha
- * channel. Every crop below is derived from these two arrays rather than from
+ * channel. The crop below is derived from these two arrays rather than from
  * pixel offsets typed in by hand, so re-exporting the artwork at another scale
- * does not silently move a crop.
+ * cannot silently move it.
  */
 async function alphaProfile(file) {
   const { data, info } = await sharp(file, OPEN)
@@ -123,70 +124,50 @@ function alphaBox({ width, height, rows, columns }) {
   return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-/* ── lockups ─────────────────────────────────────────────────────────────── */
+/* ── the lockup ──────────────────────────────────────────────────────────── */
 
 /**
- * The two lockups, kept exactly as drawn — chrome, white and red on
- * transparency. Both were composed for a dark ground, which is the only ground
- * this page has, so nothing is re-inked and no effect is added. They are trimmed
- * to their own ink and downscaled to what the page actually paints, and that is
- * the whole treatment.
+ * The campaign lockup, kept exactly as drawn — white, chrome and red on
+ * transparency. It was composed for a dark ground, which is the only ground this
+ * page has, so nothing is re-inked and no effect is added. It is trimmed to its
+ * own ink and downscaled to what the page actually paints, and that is the whole
+ * treatment.
  *
- * `dropLeadingBand` removes the topmost band of ink from a lockup. The SAIN
- * MOTORS artwork carries "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР" above the wordmark as a
- * hairline; at the size a distributor credit is shown that line collapses into
- * grey mush, so it comes off here and the page sets it as real letterspaced type
- * instead. The wordmark keeps its own proportions either way.
+ * The supplied file is already tight to its ink (its alpha box is the full
+ * canvas), so the trim is a no-op here. It is still measured rather than
+ * assumed: a later re-export carrying a transparent margin would otherwise ship
+ * a lockup that sits visibly off-centre from the type beneath it.
  */
-async function buildLockups() {
-  const targets = [
-    { key: "lockup", out: "brand/mega-test-drive-7.png", width: 1800 },
-    { key: "sain", out: "brand/sain-motors.png", width: 900, dropLeadingBand: true },
-  ];
+async function buildLockup() {
+  const file = src("lockup");
+  const profile = await alphaProfile(file);
+  const box = alphaBox(profile);
+  const width = 1800;
 
-  for (const { key, out, width, dropLeadingBand } of targets) {
-    const file = src(key);
-    const profile = await alphaProfile(file);
-    let box = alphaBox(profile);
+  /*
+   * The two ink bands are the wordmark and the ДАРХАН ХОТ plate under it. Both
+   * are kept: unlike edition 7's SAIN artwork, neither band is a hairline that
+   * collapses at display size, and the plate carries the city — which is the one
+   * thing that makes this edition's identity its own.
+   */
+  const inkFloor = Math.max(...profile.rows) * 0.02;
+  const bands = occupiedRuns(profile.rows, inkFloor).filter(
+    (band) => band.end - band.start + 1 >= profile.height * 0.01,
+  );
 
-    if (dropLeadingBand) {
-      /*
-       * Bands are runs of inked rows separated by clear space. Two guards keep
-       * this off the wrong thing: the ink threshold is a fraction of the
-       * heaviest row, so it survives any export scale, and bands under 1% of the
-       * image height are discarded as border noise rather than type.
-       */
-      const inkFloor = Math.max(...profile.rows) * 0.02;
-      const minBandHeight = profile.height * 0.01;
-      const bands = occupiedRuns(profile.rows, inkFloor).filter(
-        (band) => band.end - band.start + 1 >= minBandHeight,
-      );
+  log(
+    `  ${SOURCES.lockup}  ${profile.width}×${profile.height}` +
+      `  bands: ${bands.map((b) => `${b.start}–${b.end}`).join(", ")}` +
+      `  →  trim ${box.width}×${box.height}  →  ${width}px wide`,
+  );
+  if (ANALYZE) return;
 
-      if (bands.length < 2) {
-        throw new Error(`${SOURCES[key]}: expected a role line above the wordmark`);
-      }
-
-      log(
-        `  ${SOURCES[key]}  bands: ${bands.map((b) => `${b.start}–${b.end}`).join(", ")}` +
-          `  →  dropping the first`,
-      );
-      const wordmarkTop = bands[1].start;
-      box = { ...box, top: wordmarkTop, height: box.top + box.height - wordmarkTop };
-    }
-
-    log(
-      `  ${SOURCES[key]}  ${profile.width}×${profile.height}` +
-        `  →  trim ${box.width}×${box.height}  →  ${width}px wide`,
-    );
-    if (ANALYZE) continue;
-
-    await ensureDir(path.dirname(path.join(PUBLIC_DIR, out)));
-    await sharp(file, OPEN)
-      .extract(box)
-      .resize({ width, withoutEnlargement: true })
-      .png({ compressionLevel: 9, palette: false })
-      .toFile(path.join(PUBLIC_DIR, out));
-  }
+  await ensureDir(path.join(PUBLIC_DIR, "brand"));
+  await sharp(file, OPEN)
+    .extract(box)
+    .resize({ width, withoutEnlargement: true })
+    .png({ compressionLevel: 9, palette: false })
+    .toFile(path.join(PUBLIC_DIR, "brand", "mega-test-drive-8.png"));
 }
 
 /* ── the social card ────────────────────────────────────────────────────── */
@@ -196,17 +177,12 @@ async function buildLockups() {
  *
  * The one place its baked-in typography is an asset rather than a liability: a
  * link preview is a single flat image with no room for real text. It is never
- * painted on the page.
- *
- * Earlier editions also cut a photographic band out from between the poster's two
- * blocks of red typography, to use as the page's hero ground. That is gone — the
- * page carries no photography at all now, so this is the only bitmap left that has
- * a vehicle in it.
+ * painted on the page, never cropped into a band, and never used as a ground.
  */
 async function buildSocialCard() {
   const file = src("posterSquare");
   const { width, height } = await sharp(file, OPEN).metadata();
-  log(`  ${SOURCES.posterSquare}  ${width}x${height}  ->  poster.jpg 1200px`);
+  log(`  ${SOURCES.posterSquare}  ${width}×${height}  →  poster.jpg 1200px`);
   if (ANALYZE) return;
 
   await ensureDir(path.join(PUBLIC_DIR, "event"));
@@ -227,8 +203,8 @@ async function main() {
   }
 
   log(ANALYZE ? "\nmeasuring only (--analyze)\n" : "");
-  log("lockups");
-  await buildLockups();
+  log("lockup");
+  await buildLockup();
   log("\nsocial card");
   await buildSocialCard();
   log(ANALYZE ? "\nnothing written." : "\ndone.");

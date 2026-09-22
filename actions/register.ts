@@ -1,6 +1,6 @@
 "use server";
 
-import { transportLabel } from "@/lib/config";
+import { dayLabel, eventConfig } from "@/lib/config";
 import { normalizeFullName, normalizePhone, registrationSchema } from "@/lib/validation";
 import type {
   RegistrationFormValues,
@@ -47,14 +47,15 @@ function readUpstreamOutcome(raw: string): { ok: boolean; reason?: string } | nu
 /**
  * Take one registration.
  *
- * ── The upstream contract shrank ──────────────────────────────────────────
+ * ── The upstream contract moved again ─────────────────────────────────────
  * Same URL, same method, same interpretation of the reply — but the body now
- * carries a timestamp, a name, a number and the transport answer. The visitor is
- * asked three things, so three things are what get written.
+ * carries a timestamp, a name, a number, the day, the time and the campaign's
+ * own name. The visitor is asked four things, so four things are what get
+ * written, plus the one constant the organiser asked to see on the row.
  *
  * docs/apps-script.gs has been rewritten to match, and **must be published as a
- * new version** before this page can take a registration: edition 6's script
- * requires a visit date and refuses any body without one.
+ * new version** before this page can take a registration: edition 7's script
+ * requires a transport answer and refuses any body without one.
  */
 export async function registerAttendee(
   values: RegistrationFormValues,
@@ -82,9 +83,11 @@ export async function registerAttendee(
   const phone = normalizePhone(parsed.data.phone);
 
   /*
-   * 3 — in-flight duplicate guard, keyed on the number alone. There is no slot
-   *     to key on any more, and no capacity to check: the only refusal this app
-   *     can produce is "you have already registered".
+   * 3 — in-flight duplicate guard, keyed on the number alone — not on the
+   *     number and the day. One person registering for both days is far more
+   *     likely to be a double tap than a genuine intention, and there is no
+   *     capacity to check, so the only refusal this app can produce is "you have
+   *     already registered".
    */
   const now = Date.now();
   pruneRecentSubmissions(now);
@@ -106,7 +109,9 @@ export async function registerAttendee(
     timestamp: new Date(now).toISOString(),
     fullName,
     phone,
-    transport: transportLabel(parsed.data.transport),
+    visitDate: dayLabel(parsed.data.visitDate),
+    visitTime: parsed.data.visitTime,
+    event: eventConfig.eventId,
   };
 
   try {

@@ -46,7 +46,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
 
   return (
     <div>
-      <label htmlFor={inputId} className="ref block text-sage">
+      <label htmlFor={inputId} className="ref block text-slate">
         {label}
       </label>
 
@@ -55,7 +55,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
           <span
             aria-hidden="true"
             data-numeric=""
-            className="shrink-0 pb-2.5 font-display text-[1.0625rem] tracking-wide text-sage"
+            className="shrink-0 pb-2.5 font-display text-[1.0625rem] tracking-wide text-slate"
           >
             {prefix}
           </span>
@@ -75,7 +75,7 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(function T
            * ("9911 2233"), which is real information and has to be readable
            * rather than merely present.
            */
-          className="peer h-11 w-full min-w-0 bg-transparent pb-2.5 text-[1.0625rem] text-bone outline-none placeholder:text-sage/55 disabled:cursor-not-allowed"
+          className="peer h-11 w-full min-w-0 bg-transparent pb-2.5 text-[1.0625rem] text-bone outline-none placeholder:text-slate/55 disabled:cursor-not-allowed"
           {...rest}
         />
 

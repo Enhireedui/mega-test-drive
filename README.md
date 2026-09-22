@@ -1,39 +1,56 @@
-# MEGA EVENT TEST DRIVE 7 — OFF-ROAD EDITION
+# MEGA EVENT TEST DRIVE 8 — ДАРХАН ХОТ
 
-Campaign registration microsite for SAIN MOTORS. One composition and a colophon:
-the identity, the place, three facts, and a form of three questions. Next.js App
-Router, fully static, no client-side data fetching, and no photography on the page.
+A one-page registration site for SAIN MOTORS' eighth MEGA EVENT TEST DRIVE:
+two days in Darkhan, 2026.10.01 and 10.02, 10:00–19:00.
+
+The page states the event and takes a registration. There is nothing else on it
+— no navigation, no FAQ, no benefits section, no photographic band, and no
+second call to action beyond the bar docked on phones.
 
 ---
 
 ## ⚠️ Before you launch: republish the Apps Script
 
-**Edition 6's script rejects every edition-7 submission.** It requires a visit date
-and a visit time in every request body; this edition asks for neither, so the body
-carries `{ timestamp, fullName, phone, transport }` and the old script answers
-`{ ok: false, reason: "invalid" }` to all of it.
+**Edition 7's deployed script rejects every edition 8 registration.**
 
-Fix, once:
+Edition 7 asked which coach someone was taking and sent a `transport` field.
+There is no coach this time; the form asks which of the two days and what time,
+and sends `visitDate` and `visitTime` instead. The deployed script requires
+`transport` and answers `{ ok: false, reason: "invalid" }` without it — which
+this page reports to the visitor as "Бүртгэл илгээхэд алдаа гарлаа."
 
-1. Open **edition 6's registrations sheet** ▸ **Extensions ▸ Apps Script**.
-2. Replace all of `Code.gs` with [`docs/apps-script.gs`](docs/apps-script.gs). Save.
-3. **Deploy ▸ Manage deployments ▸** edit the live deployment ▸ Version: **New
-   version** ▸ Deploy.
+This was confirmed against the live endpoint on 2026-09-22:
 
-Editing the file without publishing a new version leaves the old code running. That
-is the most common reason a change appears to do nothing.
+```
+GET  /exec                              -> 200 {"ok":true}
+POST /exec  (edition 8 body, no transport) -> 200 {"ok":false,"reason":"invalid"}
+```
 
-Nothing else moves: the script writes into **edition 6's spreadsheet**, and editing
-the existing deployment keeps the `/exec` URL you already have, so
-`GOOGLE_SHEETS_WEBHOOK_URL` stays as it is.
+So, before launch, from the spreadsheet owner's Google account:
 
-Inside that file, edition 7's rows go on **their own tab**, `Тест драйв 7`, created on
-the first registration. Edition 6's `Sheet1` is never read or written. Two reasons
-they are not one list: edition 6 put the visit day in D and the time in E where this
-edition puts **Унаа** — which coach the person is taking, or that they are driving
-themselves — and the duplicate check reads the whole phone column of the tab it
-writes to, so a shared tab would tell every visitor who signed up in August that they
-are already registered. The layout is documented at the top of `docs/apps-script.gs`.
+1. Open the registrations sheet ▸ **Extensions ▸ Apps Script**.
+2. Open `Code.gs`, select all, and replace it with `docs/apps-script.gs`. Save.
+3. **Deploy ▸ Manage deployments ▸** edit the existing deployment ▸
+   **Version: New version ▸ Deploy.**
+
+Editing the deployment in place keeps the `/exec` URL, so
+`GOOGLE_SHEETS_WEBHOOK_URL` does not change. Editing the file *without*
+publishing a new version leaves the old code running — the most common reason a
+change appears to do nothing.
+
+Edition 8 writes to its own tab, **"Тест драйв 8"**, created on the first
+registration. Earlier editions' tabs are never read or written; the duplicate
+check only ever reads the tab it writes to.
+
+### Verifying it after you redeploy
+
+```bash
+curl -s -X POST "$GOOGLE_SHEETS_WEBHOOK_URL" \
+  -H 'Content-Type: application/json' \
+  -d '{"timestamp":"2026-10-01T02:00:00.000Z","fullName":"ТЕСТ Бүртгэл","phone":"99000000","visitDate":"10.01 (Пүрэв)","visitTime":"12:00","event":"MEGA TEST DRIVE 8"}'
+```
+
+`{"ok":true}` means it is live. Delete that row from the tab afterwards.
 
 ---
 
@@ -41,290 +58,252 @@ are already registered. The layout is documented at the top of `docs/apps-script
 
 ```bash
 npm install
-```
-
-```bash
+cp .env.example .env.local     # then fill in the webhook URL
 npm run dev
 ```
 
-Create `.env.local` from [`.env.example`](.env.example):
+| Script            | What it does                                      |
+| ----------------- | ------------------------------------------------- |
+| `npm run dev`     | Development server                                 |
+| `npm run build`   | Production build                                   |
+| `npm run lint`    | ESLint                                             |
+| `npm run typecheck` | `tsc --noEmit`                                   |
+| `npm run assets`  | Rebuilds the lockup and the social card from source artwork |
 
-| Variable                    | Purpose                                                     |
-| --------------------------- | ----------------------------------------------------------- |
-| `GOOGLE_SHEETS_WEBHOOK_URL` | The Apps Script `/exec` URL. **Secret** — it accepts writes. |
-| `NEXT_PUBLIC_SITE_URL`      | Canonical origin, for Open Graph absolute URLs.              |
-
-With `GOOGLE_SHEETS_WEBHOOK_URL` unset, `npm run dev` reports every submission as a
-success without writing anywhere — which is how to exercise the confirmation state
-without putting test rows in the live sheet. To do that while `.env.local` holds the
-real URL, put an empty override in `.env.development.local` (it wins in development
-and is gitignored) and delete it afterwards.
-
-`npm run dev` runs Node with `--use-system-ca` so the Apps Script request trusts a
-corporate TLS chain.
-
-Checks:
-
-```bash
-npm run typecheck && npm run lint && npm run build
-```
+**Submitting the form in development writes a real row to the live sheet** while
+`.env.local` points at it. To exercise the whole flow without doing that, put an
+empty override in `.env.development.local` (it wins in development, and is
+gitignored) — an unset URL reports success and writes nowhere.
 
 ---
 
 ## Editing the event
 
-Everything the page says lives in [`lib/config.ts`](lib/config.ts) — the date, the
-weekday, the hours, the venue, the presenter, the asset paths. No component invents
-a fact. Changing the event means editing that one file.
+Everything the page says lives in **`lib/config.ts`** and nowhere else. No
+component invents a date, a place, a time or a claim of its own. Change the
+event there; change the artwork by re-running `npm run assets`.
 
-The facts are transcribed from the supplied poster and nothing else. Its
-information bar reads:
+The facts are transcribed from the supplied poster
+(`MEGA DARKHAN CITY undsen poster 1x1 ratio 2.png`) and from nowhere else.
 
-```
-2026.08.22        Морингийн даваа       11:00 - 19:00
-Бямба гараг       Наадамчдын зам        цагийн хооронд
-```
+### The two questions beyond a name and a number
 
-> **Note on the venue.** An early brief wrote the second line as "Надамын зам". The
-> poster prints **"Наадамчдын зам"**, and the poster is the source of truth, so that
-> is what ships. Change it in `lib/config.ts` if the organiser confirms otherwise.
+`days` and `slots`. They are validated against their own ids in
+`lib/validation.ts`, so editing the timetable in the config cannot leave a stale
+rule that rejects an option the form is offering.
 
-### The coach
-
-`transport` in `lib/config.ts` holds the timetable the organiser supplied — three
-runs, each with a departure from the BYD 4S showroom and the time it starts back
-from the pass. Editing that array is all it takes to change the timetable: the
-control, the validation and the value written to the sheet are all derived from it,
-so there is no second place to keep in step.
-
-The page does not print the table and then ask a question underneath it. Each run
-*is* one control, carrying its departure large and its return as a quiet second
-line, with a fourth option for people driving themselves. Nothing is lost and there
-is no table on the page.
+The day is asked because the fleet is out on two separate days and an organiser
+cannot staff them from a list of times alone. The four slots are arrival times
+inside the open hours, not a booking system: there is no capacity, no seat count
+and no closed state, because nothing has been supplied that would let this page
+refuse anyone. A slot that greys itself out without a real number behind it is
+fake scarcity.
 
 ### What is deliberately not on the page
 
-No price, prizes, giveaways, refreshments, entertainment, vehicle count, capacity,
-model list, or promise of an SMS. None of it was supplied, and a registration page
-that invents any of it makes a promise the organiser never made. Anything confirmed
-later belongs in `lib/config.ts`.
-
-`venue.mapUrl` holds the organiser's own map link, and the "Байршлыг харах" link
-beside the venue renders only while it is set — emptying it hides the link rather
-than pointing it nowhere. `venue.latitude` / `longitude` stay `null`, which omits the
-`geo` block from the page's structured data: the coordinates are genuinely unknown,
-and a guessed latitude published as machine-readable fact is worse than none.
+No coach, no meeting point, no phone number, no price, no prizes, no giveaways,
+no capacity and no map link. Edition 7 had a shuttle timetable and a map URL
+because the organiser supplied them; this poster carries neither. Anything
+confirmed later belongs in `lib/config.ts` and nowhere else.
 
 ---
 
 ## Assets
 
-Source artwork lives outside the repo, in `../testdriver7`:
+`scripts/prepare-assets.mjs` reads the supplied artwork from `../testdrive8` and
+writes two files. Outputs are committed, so it only re-runs when the artwork
+changes. Every crop is derived from a measured alpha profile rather than from
+pixel offsets typed in by hand.
 
-| File                                        | Becomes                                 |
-| ------------------------------------------- | --------------------------------------- |
-| `Logo-MT7-OFF.png`                          | `public/brand/mega-test-drive-7.png`    |
-| `Logo-MT7-OFF-2.png`                        | `public/brand/sain-motors.png`          |
-| `MEGA OFF-ROAD undsen poster 1x1 ratio.png` | `public/event/poster.jpg` (social only) |
+| Output                             | From                                    |
+| ---------------------------------- | --------------------------------------- |
+| `public/brand/mega-test-drive-8.png` | `MEGA TEST DRIVE 8.png` (5315×2147)   |
+| `public/event/poster.jpg`          | the square poster, for social cards only |
 
-`MEGA OFF-ROAD Page cover.png` is also supplied and is deliberately unused. It was
-placed at the top of the page and measured: at 2.68:1 it pushed the submit button
-below the fold at every width tested. Cropping it to a photographic band below the
-form was the next attempt, and that was cut on request. The page carries no
-photography at all now.
+`public/brand/sain-motors.png` is **not** rebuilt. The distributor wordmark did
+not change and no new source was supplied, so the committed asset is kept.
 
-```bash
-npm run assets
-```
+### The poster is never painted on the page
 
-```bash
-node scripts/prepare-assets.mjs --analyze
-```
-
-Outputs are committed, so this only re-runs when the artwork changes. Point it
-elsewhere with `MTD7_SOURCE_DIR`.
-
-The one interesting thing it does is measured rather than hardcoded: it **trims each
-lockup to its own ink** from the alpha channel, and drops the hairline "АЛБАН ЁСНЫ
-ДИСТРИБЬЮТЕР" band above the SAIN wordmark — at the size a distributor credit is
-shown, that line turns to grey mush, so the page sets it as real letterspaced type
-instead.
-
-`public/event/poster.jpg` is the full poster, used **only** for social cards, where
-baked-in typography is the point and a link preview has no room for real text. It is
-never painted on the page.
+It is a vertical sandwich: the SAIN MOTORS credit, the campaign lockup, the
+fleet on wet asphalt, the marque list, then a bar carrying the dates, the place
+and the hours. Every layer except the photograph is typography this page sets as
+real text, so it cannot be a hero, a background or a crop. It is kept whole,
+once, as the Open Graph card — a link preview is the one place baked-in type is
+the right answer.
 
 ---
 
 ## Design
 
-**Direction: a survey of a pass.** The event is defined by a place — Морингийн
-даваа, a named mountain pass on the Наадамчдын зам road — and sold on terrain. So
-the page is built as a field record of that terrain: elevation contours,
-letterspaced reference labels, and the facts as a small data table. "OFF-ROAD
-EDITION" is the claim the document evidences.
+### The identity carries the page
 
-### The contour field is the one bold element
+The lockup is placed as its own transparent asset — never rebuilt as type, never
+recoloured, never distorted, nothing layered over it. It is the page's only
+large visual element, and there is no photography on the page at all.
 
-[`components/ui/ContourField.tsx`](components/ui/ContourField.tsx) draws the pass:
-nested contour rings with a saddle pinched between two lobes — which is what a pass
-*is* on a map — plus a survey crosshair on the saddle itself. Inline SVG: a dozen
-paths, no second asset, no request, traced in with `stroke-dashoffset` so it reads
-as a drawing being made. Nothing in it is random; random contours read as noise, and
-noise is not a survey. It appears once, large, behind the identity, and nowhere else.
+Because the lockup already prints **ДАРХАН ХОТ** on its red plate, the page does
+not repeat it. The display heading under the artwork is the landmark a driver
+actually navigates by — ДАРХАН ПЛАЗА — with the road under it.
 
 ### Palette — sampled, not invented
 
-| Token    | Hex       | Role                                                     |
-| -------- | --------- | -------------------------------------------------------- |
-| `basalt` | `#12140F` | the ground — steppe green-black at dusk                  |
-| `bone`   | `#E4DFD3` | type — the mineral dust of the photograph                |
-| `sage`   | `#8F8D78` | the only muted tone; 4.6:1 on basalt, safe for real copy  |
-| `amber`  | `#D98B2B` | the sun flare — contours and reference marks only         |
-| `signal` | `#E81820` | the campaign red, **inherited from the lockup**           |
+Edition 7's ground was a green-black taken from the steppe at dusk. This
+edition's poster is Darkhan at dusk, so every value was re-sampled from it:
 
-Every value is sampled from the supplied artwork. `signal` is the exact red of the
-"Event" script and the OFF-ROAD EDITION brush, and it appears on the page *only* as
-the call to action — which is what makes one block of colour read as the thing to
-do. `signal-bright` (`#FF5B60`) exists because the campaign red manages only 4.3:1
-on basalt and validation copy is 13px.
+| Token            | Value     | Where it came from                                    |
+| ---------------- | --------- | ----------------------------------------------------- |
+| `midnight`       | `#090d1c` | the poster's darkest decile (`#030308`) over a night sky running `#050e31`–`#121d4b` |
+| `bone`           | `#e9e7ec` | its brightest quartile (`#f2edec`), pulled off white so it does not out-glare the chrome lockup |
+| `slate`          | `#949ab0` | the dusk haze — 6.9:1 on midnight, so it is safe for real copy |
+| `amber`          | `#dd8a3f` | the sunset over the city (measured `#d8725f`), opened up so it cannot be mistaken for the campaign red — 7.2:1 |
+| `signal`         | `#cc2229` | the measured mean of the ДАРХАН ХОТ plate, across 258k opaque pixels |
+| `signal-deep`    | `#a8151c` | the resting button fill — carries white at 7.5:1 |
+| `signal-bright`  | `#ff6a6f` | 13px validation copy — 6.9:1 where the plate red manages 3.5:1 |
 
-**Why the ground is dark, and why it is not black.** Dark is a constraint, not a
-habit: the supplied lockup is a white-to-silver chrome wordmark with no outline
-(measured median luminance 255), so on a light ground it very nearly disappears, and
-the identity may not be recoloured. What did change is *which* dark — a green-black
-sampled from the steppe rather than a neutral `#0A0A0A`, warm mineral type rather
-than pure white, and amber introduced so red no longer has to be decoration.
+The ground has to be dark: the lockup is a white-to-chrome wordmark with no
+outline or dark keyline (measured mean luminance 255 across 1.4M opaque pixels),
+and on a light ground it very nearly disappears.
+
+Red appears in exactly one place — the call to action. That is what makes it
+read as the action rather than as decoration.
 
 ### Type — Oswald + Inter, and one hard test
 
-Oswald sets the display voice: condensed, uppercase, and chosen for that. Its narrow
-set width is what lets "МОРИНГИЙН ДАВАА" hold one line at display scale on a 375px
-screen. Inter handles everything a hand touches or reads at length.
+Unchanged from edition 7, and deliberately so. Mongolian **Ө/ө** (U+04E8/04E9)
+and **Ү/ү** (U+04AE/04AF) sit outside the basic `cyrillic` range, in
+`cyrillic-ext`, and several otherwise attractive display faces declare that range
+and ship almost none of it. Sofia Sans Condensed carries the whole standard
+Cyrillic alphabet, declares `U+0460-052F`, and still omits exactly those four
+letters — so «БҮРТГҮҮЛЭХ», the one word this page exists to be clicked on, would
+render with two letters in a fallback face. Any new face must clear that test
+before it ships. See the header of `app/fonts.css`.
 
-**Any new face must pass the Mongolian test first.** Ө/ө (U+04E8/9) and Ү/ү
-(U+04AE/AF) sit in `cyrillic-ext`, and several faces declare that range while
-shipping almost none of it. Measured by loading each subset and comparing glyph
-advance widths against a fallback:
+### The marque index replaced the contour field
 
-| Face                    | Ө ө Ү ү     | Note                                     |
-| ----------------------- | ----------- | ---------------------------------------- |
-| **Oswald**              | present     | 19KB subset — chosen                     |
-| Golos Text              | present     | viable alternative                       |
-| Sofia Sans Condensed    | **missing** | 3.4KB subset; has all standard Cyrillic  |
-| IBM Plex Sans Condensed | **missing** |                                          |
-| Barlow Condensed        | —           | no Cyrillic at all                       |
+Edition 7's one graphic was its mountain pass drawn as elevation contours — the
+terrain was the event, so surveying it was the page's argument. Edition 8 is two
+days in a city and has no such subject; keeping that drawing would have left a
+picture of a mountain on a page about Darkhan.
 
-Sofia Sans Condensed is the trap worth naming: it would have rendered "БҮРТГҮҮЛЭХ",
-the one word this page exists to be clicked on, with two letters in a fallback face.
-See the header of [`app/fonts.css`](app/fonts.css).
+What replaced it is the only thing the poster carries that the rest of the page
+does not, and the thing a visitor weighing up a test drive most wants to know:
+which cars will be there. Ten names, set as a ruled index — texture that is also
+content, which is the only kind of decoration this page allows.
 
-Four type treatments and no more: `ref` (the letterspaced label — every piece of
-micro-type on the page is one), `display` (the venue, and only the venue),
-`figure-md` (dates and times), `heading` (the form and the confirmation).
+They are set as **type, never as logos**. No marque artwork was supplied, and
+redrawing ten manufacturers' wordmarks would put ten fake logos on an official
+distributor's page.
 
 ### The form is in the composition, not below it
 
-On a wide screen the identity and facts hold the left column and the form holds the
-right, both above the fold — so there is no "scroll to the form" step and no second
-section to build. That is what lets the page be genuinely small. Measured: the
-submit button is above the fold from 1024px up.
+On a wide screen the facts hold the left column and the form holds the right,
+both in the first screenful — there is no "scroll to the form". On a phone the
+columns stack, and the docked bar covers the gap.
 
-On a phone the columns become one: identity, facts, then the three questions.
-Measured across 375–1440 — no horizontal scroll anywhere, and the whole page is
-1.14–1.83 viewport heights.
+### There *is* a sticky mobile CTA this time
+
+Edition 7 did not have one and said so. This page is taller — it gained a day
+question and a marque index — and the measurement decided it: on a 390×800 phone
+the registration column starts at y≈652 and its submit button at y≈1279. The
+form is two thirds of a screen below the fold on arrival.
+
+`components/registration/StickyRegister.tsx` docks a bar while the form is out of
+reach and stands down once it has climbed into the upper 45% of the screen. It
+uses `IntersectionObserver`, not a scroll listener — a scroll handler would
+measure layout on every frame of every scroll, which is the classic way to make a
+phone stutter. It is `lg:hidden`, it disappears for good on success, `SiteFooter`
+carries matching bottom padding so it never rests on the colophon, and
+`env(safe-area-inset-bottom)` keeps it clear of the home indicator.
 
 ### Motion is CSS, and that is load-bearing
 
-Every element that starts at `opacity: 0` has something load-bearing restoring it.
-If that is a JS animation loop, then a failed hydration, a thrown error, a bundle
-that never arrives, or a tab that is not compositing frames leaves the identity
-permanently invisible — which is exactly what happened when an earlier edition's
-hero was built with `framer-motion`. So the entrance is a CSS stagger with
-`animation-fill-mode: both`, the contours trace in CSS, and there is no
-scroll-reveal anywhere. `framer-motion` is not a dependency.
-
-Reduced motion collapses every duration. One non-obvious consequence is handled in
-`globals.css`: `.trace` must also have its `stroke-dasharray` cleared, or collapsing
-the duration leaves the contours stroked with a 1200px gap — i.e. invisible.
-
-### There is no sticky mobile CTA
-
-Scrolling past the facts puts the form on screen, so a bar that appeared when some
-earlier button left the viewport would have to hide again almost immediately — it
-would flash rather than help, and it would need an IntersectionObserver to avoid
-covering the fields it exists to reach.
-
-### One deliberate near-square
-
-The button and the plate carry a 4px radius, not 12px. This page is a field document
-— hairlines, tabular figures, ruled entry lines — and a softly rounded button in the
-middle of that reads as though it were imported from a different design.
+Every element that starts at `opacity: 0` has something load-bearing restoring
+it. If that were a JS animation loop, a failed hydration, a thrown error or a
+bundle that never arrives would leave the lockup permanently invisible — which
+is what happened when an earlier edition's hero was built with an animation
+library. A CSS animation needs no bundle, runs before hydration, and
+`animation-fill-mode: both` holds the finished state. The reduced-motion block
+collapses every duration, landing each element on its final state: visible,
+unmoved.
 
 ---
 
 ## Architecture
 
 ```
-app/
-  layout.tsx     metadata, font preloads, the no-JS notice
-  page.tsx       the masthead, the colophon, Event structured data
+app/          layout (metadata, fonts), page (structured data), error
 components/
-  sections/      Masthead (the whole invitation) · SiteFooter
-  registration/  RegistrationForm (client) + its confirmation
-  ui/            ContourField · TransportChoice · ActionButton · TextField · FieldError
-lib/             config.ts (every fact) · validation.ts (zod + copy)
-actions/         register.ts — "use server"
-types/           event.ts · registration.ts
+  sections/   Masthead · MarqueIndex · SiteFooter
+  registration/ RegistrationForm · StickyRegister
+  ui/         ActionButton · ChoiceGroup · TextField · FieldError
+lib/          config (the event) · validation (the schema + all copy)
+actions/      register.ts — the server action
+docs/         apps-script.gs — the Google Sheets backend
+types/        event · registration
 ```
 
-Only `RegistrationForm`, `TextField`, `TransportChoice` and `ActionButton` ship
-JavaScript. The masthead, the contour field and the colophon are server components
-with none.
+The page is fully static. Nothing is read back at runtime — no capacity to
+report, no availability to check — so there is no `revalidate` and no upstream
+request between a visitor and the first paint.
+
+`ChoiceGroup` is one component asked two questions. Edition 7 wrote its coach
+picker as a bespoke control; edition 8 needs the same shape twice, so the control
+is general and the questions are data — one implementation, one set of keyboard
+semantics to get right.
 
 ### Registration
 
-`actions/register.ts` validates with the same zod schema the client uses,
-normalises the name and number, checks an in-process duplicate guard keyed on the
-phone, and POSTs once to Apps Script with an 8s timeout.
+`RegistrationForm` → `registerAttendee` (a server action) → Apps Script → the
+sheet. Four fields and a honeypot.
 
-It never reports success without an explicit `{ ok: true }`. A Web App deployed with
-the wrong access setting answers `200` with a Google sign-in page, and treating an
-unparseable body as success would tell people they are registered while nothing was
-written.
+The action re-validates on the server, normalises the name and the number, and
+guards against an in-flight double submission keyed on the phone number. It
+**never reports success without an explicit `{ ok: true }`** — a Web App deployed
+with the wrong access setting answers 200 with a Google sign-in page, and
+treating an unparseable body as success would tell people they are registered
+while nothing was ever written.
 
-Failure copy is in `lib/validation.ts`. Most codes resolve to one sentence — from
-the visitor's chair a timeout, a bad gateway and an unparseable response are the
-same event with the same remedy. The three that say something else are the three
-where "try again" would be wrong advice: an already-registered number, a dead
-connection, and a misconfigured endpoint. **Entered values are never cleared on a
-failure.**
+The webhook URL is server-only and never prefixed with `NEXT_PUBLIC_`.
+
+| Sheet column | Written by |
+| ------------ | ---------- |
+| A Бүртгүүлсэн огноо, B Овог нэр, C Утас, D Ирэх өдөр, E Цаг, F Эвент | this app |
+| G Холбогдсон, H Ирсэн эсэх, I Тэмдэглэл | your team — never touched |
+
+Values are written with a leading apostrophe so Sheets cannot reinterpret
+`10.01` as a date or `12:00` as a duration, and the name regex accepts only
+letters, marks, spaces, apostrophes, dots and hyphens — which also means a value
+can never begin with `=`, `+` or `@`.
 
 ---
 
 ## Accessibility
 
-- Semantic headings: the `h1` wraps the campaign lockup and carries the full
-  campaign name as its accessible text, so the page has a real heading without
-  setting display type that would compete with the artwork.
-- The facts are a `dl` — visible `dt` labels (ОГНОО / ГАРАГ / ЦАГ) against their
-  values, which is also what makes them scannable in one pass.
-- The coach is a real `radiogroup`: arrow keys traverse it, only the selected option
-  is a tab stop, and each is a `button` with `role="radio"` rather than a styled
-  `<input>` so the control can carry two lines of type.
-- The form's live region is mounted outside the form/confirmation branch. Inside, it
-  would unmount at the exact moment there was something worth announcing.
-- The heading belongs to the form, not the section: on success it becomes "Бүртгэл
-  амжилттай", so the page never shows "Бүртгүүлэх" above a completed registration.
-- Amber focus rings and a 2px offset throughout, a skip link to `#registration`,
-  44px+ controls, and 17px inputs so iOS Safari does not zoom on focus and leave the
-  page stranded.
+Semantic markup throughout, every input labelled, and a skip link to the form.
+
+The day and time controls are real `radiogroup`s: arrow keys traverse, only the
+selected option is a tab stop, and `aria-checked` carries the selection — so the
+chosen state is never communicated by colour alone. Focus is always visible
+(amber, 2px, offset). The live region announcing the submission is mounted on
+both branches, so it is still there at the moment there is something to announce.
+
+Fields are 17px, not 15: Safari on iOS zooms in on focus for anything under 16px
+and never zooms back out.
 
 ---
 
 ## Deploying
 
-Netlify, via [`netlify.toml`](netlify.toml). Set `GOOGLE_SHEETS_WEBHOOK_URL` and
-`NEXT_PUBLIC_SITE_URL` in the site's environment variables — never commit them.
+Netlify, via `@netlify/plugin-nextjs`. Push to `main`; Netlify builds.
 
-And republish the Apps Script. See the top of this file.
+Environment variables belong in **Site configuration ▸ Environment variables**,
+never in `netlify.toml`:
+
+| Variable                    | Notes                                    |
+| --------------------------- | ---------------------------------------- |
+| `GOOGLE_SHEETS_WEBHOOK_URL` | Secret, server-only. The `/exec` URL.     |
+| `NEXT_PUBLIC_SITE_URL`      | Canonical origin, for Open Graph URLs.    |
+
+And, again: **republish the Apps Script before launch**, or every registration
+fails.
