@@ -31,6 +31,17 @@ const config = [
     files: ["scripts/**/*.mjs"],
     rules: { "no-console": "off" },
   },
+  {
+    /* Netlify scheduled functions. Nobody is watching a cron run, so the
+       function log is the only place its outcome can be observed — and Netlify
+       requires the handler to be the default export, which it cannot be and
+       also be a named declaration this rule is happy with. */
+    files: ["netlify/functions/**/*.mjs"],
+    rules: {
+      "no-console": "off",
+      "import/no-anonymous-default-export": "off",
+    },
+  },
 ];
 
 export default config;

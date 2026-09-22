@@ -8,8 +8,30 @@ import type {
   RegistrationResult,
 } from "@/types/registration";
 
-/** Comfortably inside a serverless host's 10s synchronous function budget. */
-const WRITE_TIMEOUT_MS = 8_000;
+/**
+ * How long to wait for Apps Script, in milliseconds.
+ *
+ * Netlify gives a synchronous function 10s, so this cannot go higher without
+ * the platform killing the request first — 9s leaves a second for everything
+ * either side of the fetch.
+ *
+ * ── Why 8s was not enough ─────────────────────────────────────────────────
+ * Measured against the live endpoint on 2026-09-22:
+ *
+ *     GET  (health)   cold 42.3s   warm 1.2s
+ *     POST (write)    cold 16.0s   warm 4.0s
+ *
+ * A cold Apps Script deployment is far slower than any timeout that fits in a
+ * serverless budget, and it keeps running server-side after we give up — so the
+ * row lands in the sheet while the visitor is told the submission failed. That
+ * is the worst outcome available: a real registration reported as an error.
+ *
+ * Raising the ceiling alone cannot fix a 16s cold start. What fixes it is
+ * netlify/functions/keep-warm.mts, which pings the endpoint every five minutes
+ * so it is never cold when a visitor arrives; this value is the safety margin
+ * around a warm write, not the plan.
+ */
+const WRITE_TIMEOUT_MS = 9_000;
 
 /** Window in which an identical submission is treated as a double-post. */
 const DEDUPE_WINDOW_MS = 5 * 60 * 1000;

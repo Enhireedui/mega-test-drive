@@ -87,8 +87,14 @@ const GENERIC_FAILURE = "Бүртгэл илгээхэд алдаа гарлаа
 
 const errorCopy: Record<string, string> = {
   VALIDATION: "Бөглөсөн мэдээллээ шалгаад дахин оролдоно уу.",
-  DUPLICATE: "Энэ утасны дугаараар аль хэдийн бүртгүүлсэн байна.",
-  TIMEOUT: GENERIC_FAILURE,
+  /* Also the answer someone gets when a slow first attempt wrote the row and
+     they pressed again, so it has to read as reassurance rather than refusal —
+     in both cases the true statement is "you are on the list". */
+  DUPLICATE: "Энэ дугаар бүртгэлд бүртгэгдсэн байна. Бүртгэл баталгаатай.",
+  /* Distinct from the generic failure on purpose: on a timeout the write may
+     well have landed, so "try again" is the right advice and the duplicate
+     answer they get back is what tells them it did. */
+  TIMEOUT: "Сервер удаан хариулж байна. Түр хүлээгээд дахин илгээнэ үү.",
   NETWORK: "Интернет холболт тасалдсан байна. Дахин оролдоно уу.",
   UPSTREAM: GENERIC_FAILURE,
   CONFIG: "Бүртгэлийн систем түр хугацаанд ажиллахгүй байна. Та бидэнтэй шууд холбогдоно уу.",
