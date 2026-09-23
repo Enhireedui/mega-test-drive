@@ -66,7 +66,7 @@ function Confirmation({
       </h2>
 
       <p className="mt-4 text-[0.9375rem] leading-relaxed text-slate">
-        Бүртгэл баталгаажлаа. Товлосон цагтаа ирээрэй.
+        Бүртгэл амжилттай баталгаажлаа.
       </p>
 
       <dl className="mt-9 border-t border-rule">
