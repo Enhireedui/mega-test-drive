@@ -11,27 +11,25 @@ import type {
 /**
  * How long to wait for Apps Script, in milliseconds.
  *
- * Netlify gives a synchronous function 10s, so this cannot go higher without
- * the platform killing the request first — 9s leaves a second for everything
- * either side of the fetch.
+ * Netlify gives a synchronous function 60s (not configurable). 50s leaves ten
+ * seconds for everything either side of the fetch.
  *
- * ── Why 8s was not enough ─────────────────────────────────────────────────
+ * ── Why 9s was not enough ─────────────────────────────────────────────────
  * Measured against the live endpoint on 2026-09-22:
  *
  *     GET  (health)   cold 42.3s   warm 1.2s
  *     POST (write)    cold 16.0s   warm 4.0s
  *
- * A cold Apps Script deployment is far slower than any timeout that fits in a
- * serverless budget, and it keeps running server-side after we give up — so the
- * row lands in the sheet while the visitor is told the submission failed. That
- * is the worst outcome available: a real registration reported as an error.
+ * The old 9s ceiling assumed Netlify's former 10s limit, so every cold write
+ * timed out — and Apps Script keeps running after we give up, so the row landed
+ * in the sheet while the visitor was told "Сервер удаан хариулж байна". That is
+ * the worst outcome available: a real registration reported as an error.
  *
- * Raising the ceiling alone cannot fix a 16s cold start. What fixes it is
- * netlify/functions/keep-warm.mts, which pings the endpoint every five minutes
- * so it is never cold when a visitor arrives; this value is the safety margin
- * around a warm write, not the plan.
+ * The ceiling now covers a cold write outright. netlify/functions/keep-warm.mjs
+ * still pings the endpoint every five minutes so most visitors get the fast
+ * path, but correctness no longer depends on it.
  */
-const WRITE_TIMEOUT_MS = 9_000;
+const WRITE_TIMEOUT_MS = 50_000;
 
 /** Window in which an identical submission is treated as a double-post. */
 const DEDUPE_WINDOW_MS = 5 * 60 * 1000;

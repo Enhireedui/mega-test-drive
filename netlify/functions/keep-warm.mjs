@@ -9,11 +9,9 @@
  *     GET  (health)   cold 42.3s   warm 1.2s
  *     POST (write)    cold 16.0s   warm 4.0s
  *
- * Netlify gives a synchronous function 10 seconds. So on a cold endpoint the
- * registration action gives up — while Apps Script carries on server-side and
- * writes the row anyway. The visitor is told their registration failed, and it
- * is sitting in the sheet. That is the worst failure this app can produce, and
- * raising the timeout cannot fix it: 16 seconds does not fit inside 10.
+ * The registration action now waits up to 50 seconds (Netlify allows a
+ * synchronous function 60), so a cold write no longer fails — but it still makes
+ * the visitor wait ~16 seconds.
  *
  * ── The fix ───────────────────────────────────────────────────────────────
  * Never let it go cold. A GET every five minutes costs one trivial request and
