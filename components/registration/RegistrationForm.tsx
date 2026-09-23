@@ -21,6 +21,9 @@ const EMPTY_FORM: RegistrationFormValues = {
   honeypot: "",
 };
 
+/** When to tell someone waiting on a submit that it is still going. */
+const SLOW_HINT_AFTER_MS = 4_000;
+
 /**
  * The confirmation.
  *
@@ -131,6 +134,19 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
   const visitDate = useWatch({ control, name: "visitDate" });
   const visitTime = useWatch({ control, name: "visitTime" });
 
+  /*
+   * A cold Apps Script write takes ~16s. Past a few seconds, say so — a button
+   * that just spins that long reads as broken, and a second tap only earns the
+   * visitor a "duplicate" answer.
+   */
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    /* Reset in onSubmit, not here; the hint only renders while submitting. */
+    if (!isSubmitting) return;
+    const timer = window.setTimeout(() => setSlow(true), SLOW_HINT_AFTER_MS);
+    return () => window.clearTimeout(timer);
+  }, [isSubmitting]);
+
   /* Tells the docked phone CTA to stand down — see StickyRegister. */
   useEffect(() => {
     if (confirmed) window.dispatchEvent(new Event(REGISTERED_EVENT));
@@ -145,6 +161,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
     if (submitLock.current) return;
     submitLock.current = true;
     setSubmissionError(null);
+    setSlow(false);
 
     try {
       const result = await registerAttendee(values);
@@ -255,7 +272,9 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
               inputMode="numeric"
               autoComplete="tel-national"
               enterKeyHint="send"
-              maxLength={9}
+              /* No maxLength: the browser would cut a pasted "+976 9911 2233"
+                 to "+976 9911", which formats as the wrong but valid-looking
+                 "9769 9112". formatPhoneInput strips +976 and caps at 8 digits. */
               prefix="+976"
               placeholder="9911 2233"
               error={errors.phone?.message}
@@ -285,6 +304,12 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
           >
             Бүртгүүлэх
           </ActionButton>
+
+          {isSubmitting && slow ? (
+            <p className="mt-4 text-center text-[0.8125rem] leading-relaxed text-slate">
+              Түр хүлээнэ үү — 20 секунд хүртэл үргэлжилж магадгүй.
+            </p>
+          ) : null}
         </form>
       )}
     </>

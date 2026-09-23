@@ -33,8 +33,12 @@
  * not a piece of the registration path.
  */
 
-/** Generous: this is a background ping with nobody waiting on it. */
-const PING_TIMEOUT_MS = 60_000;
+/**
+ * Just under Netlify's 30s limit for scheduled functions, so a very cold ping
+ * gives up and logs rather than being killed mid-request with no log line.
+ * Apps Script keeps waking up after we stop waiting, so the ping still works.
+ */
+const PING_TIMEOUT_MS = 25_000;
 
 export default async () => {
   const url = process.env.GOOGLE_SHEETS_WEBHOOK_URL;

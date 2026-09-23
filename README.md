@@ -304,7 +304,7 @@ never in `netlify.toml`:
 | Variable                    | Notes                                    |
 | --------------------------- | ---------------------------------------- |
 | `GOOGLE_SHEETS_WEBHOOK_URL` | Secret, server-only. The `/exec` URL.     |
-| `NEXT_PUBLIC_SITE_URL`      | Canonical origin, for Open Graph URLs.    |
+| `NEXT_PUBLIC_SITE_URL`      | Optional. Only used off Netlify — Netlify's own `URL` wins. |
 
 And, again: **republish the Apps Script before launch**, or every registration
 fails.

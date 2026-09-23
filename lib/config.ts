@@ -32,7 +32,13 @@ export const eventConfig: EventConfig = {
   /* What goes in the sheet's event column, as the organiser names the campaign. */
   eventId: "MEGA TEST DRIVE 8",
   editionName: "ДАРХАН ХОТ",
-  siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? "https://megatestdrive.sainmotors.mn",
+  /* `URL` is set by Netlify at build time to the site's primary address — the
+     custom domain once one is attached, sainmotors1.netlify.app until then — so
+     canonical and Open Graph URLs always point somewhere that resolves. It wins
+     over NEXT_PUBLIC_SITE_URL because a stale value there (megatestdrive.
+     sainmotors.mn, which has no DNS) broke every link preview. */
+  siteUrl:
+    process.env.URL || process.env.NEXT_PUBLIC_SITE_URL || "https://sainmotors1.netlify.app",
 
   // Mongolia is UTC+8 all year.
   utcOffsetHours: 8,

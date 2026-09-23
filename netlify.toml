@@ -9,7 +9,7 @@
 # Site configuration ▸ Environment variables, so the webhook URL never
 # lands in version control:
 #   GOOGLE_SHEETS_WEBHOOK_URL   (secret, server-only)
-#   NEXT_PUBLIC_SITE_URL        (e.g. https://megatestdrive.netlify.app)
+#   NEXT_PUBLIC_SITE_URL        (optional; Netlify's built-in URL wins)
 
 [build]
   command = "npm run build"
