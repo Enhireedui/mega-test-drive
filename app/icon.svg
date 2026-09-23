@@ -1,10 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MEGA EVENT TEST DRIVE 7">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="MEGA EVENT TEST DRIVE 8">
   <!-- The edition number on the campaign's ground, in the red sampled from the
        lockup. Drawn as strokes rather than set as <text>: a favicon renders in
        browser chrome, where the page's webfont does not exist and a text
        element would fall back to whatever the OS happens to have. -->
   <rect width="64" height="64" fill="#06070a" />
   <g fill="none" stroke="#e81820" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M19 16h26L30 50" />
+    <circle cx="32" cy="23.5" r="8" />
+    <circle cx="32" cy="40.5" r="9.5" />
   </g>
 </svg>
