@@ -93,7 +93,7 @@ The facts are transcribed from the supplied poster
 rule that rejects an option the form is offering.
 
 The day is asked because the fleet is out on two separate days and an organiser
-cannot staff them from a list of times alone. The four slots are arrival times
+cannot staff them from a list of times alone. The five slots are arrival times
 inside the open hours, not a booking system: there is no capacity, no seat count
 and no closed state, because nothing has been supplied that would let this page
 refuse anyone. A slot that greys itself out without a real number behind it is
@@ -118,7 +118,7 @@ pixel offsets typed in by hand.
 | Output                             | From                                    |
 | ---------------------------------- | --------------------------------------- |
 | `public/brand/mega-test-drive-8.png` | `MEGA TEST DRIVE 8.png` (5315×2147)   |
-| `public/event/poster.jpg`          | the square poster, for social cards only |
+| `public/event/darhan-mega-test-drive-8.jpg` | the square poster, for social cards only |
 
 `public/brand/sain-motors.png` is **not** rebuilt. The distributor wordmark did
 not change and no new source was supplied, so the committed asset is kept.

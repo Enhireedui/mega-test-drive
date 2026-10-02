@@ -12,7 +12,7 @@
  * meeting point, so `EventTransport` is gone rather than invented.
  *
  * In its place the visitor picks *when* they are coming: one of two days and one
- * of four arrival slots. Those are choices, so they are modelled as `EventDay`
+ * of five arrival times. Those are choices, so they are modelled as `EventDay`
  * and `EventSlot` and validated against these lists rather than against a
  * hardcoded rule somewhere else.
  */
@@ -131,7 +131,7 @@ export interface EventConfig {
   readonly poster: EventImage;
   /** Both days, in order. The form asks which one. */
   readonly days: readonly EventDay[];
-  /** The four arrival slots. The form asks which one. */
+  /** The five arrival times. The form asks which one. */
   readonly slots: readonly EventSlot[];
   readonly hours: EventHours;
   readonly venue: EventVenue;

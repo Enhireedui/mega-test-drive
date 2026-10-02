@@ -21,6 +21,15 @@ const description =
   `${fullName}. ${datesLabel()} (${weekdaysLabel()}), ${hours.label} — ${venueLabel()}. ` +
   `${presenter.name}, ${presenter.role.toLowerCase()}. Онлайнаар бүртгүүлээрэй.`;
 
+/*
+ * The link preview gets the facts alone, in one line: on a chat bubble there is
+ * room for a title and roughly one line under it, and the when-and-where is the
+ * whole reason to tap. The hours lose their spaces here — "10:00–19:00" is one
+ * token a preview will not break across lines.
+ */
+const shareDescription =
+  `${datesLabel()} (${weekdaysLabel()}) · ${hours.opensAt}–${hours.closesAt} · ${eventConfig.venue.landmark}`;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
@@ -45,17 +54,17 @@ export const metadata: Metadata = {
     locale: "mn_MN",
     url: siteUrl,
     siteName: presenter.name,
-    title: `${fullName} · ${presenter.name}`,
-    description,
+    title: fullName,
+    description: shareDescription,
     /* The poster, whose baked-in typography is an asset in a social card and a
        liability everywhere else — which is why it is never painted on the page. */
     images: [{ url: poster.src, width: poster.width, height: poster.height, alt: fullName }],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${fullName} · ${presenter.name}`,
-    description,
-    images: [poster.src],
+    title: fullName,
+    description: shareDescription,
+    images: [{ url: poster.src, alt: fullName }],
   },
   robots: { index: true, follow: true },
   formatDetection: { telephone: false },

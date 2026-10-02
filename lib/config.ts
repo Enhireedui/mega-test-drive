@@ -67,7 +67,9 @@ export const eventConfig: EventConfig = {
    * the layout: the campaign lockup carries the page, and a link preview is the
    * one place a flat image with baked-in type is the right answer.
    */
-  poster: { src: "/event/poster.jpg", width: 1200, height: 1200 },
+  /* A new filename rather than an overwrite: Facebook and Messenger cache a card
+     by its image URL, so a fresh path is what lets the corrected dates through. */
+  poster: { src: "/event/darhan-mega-test-drive-8.jpg", width: 1200, height: 1200 },
 
   /*
    * Two days. The poster sets them as one line — "2026.10.09, 10" over
@@ -81,15 +83,17 @@ export const eventConfig: EventConfig = {
   ],
 
   /*
-   * Four arrival slots inside the open hours. Not a capacity and not a booking:
-   * the door is open 10:00–19:00 either day, and these are the times people are
-   * asked to aim for so the fleet is not all claimed at once.
+   * Five arrival times inside the open hours. Start times only — not a
+   * capacity, not a booking and not a duration: the door is open 10:00–19:00
+   * either day, and these are the times people are asked to aim for so the
+   * fleet is not all claimed at once.
    */
   slots: [
     { id: "10:00", label: "10:00" },
     { id: "12:00", label: "12:00" },
     { id: "14:00", label: "14:00" },
     { id: "16:00", label: "16:00" },
+    { id: "18:00", label: "18:00" },
   ],
 
   /* The en dash is the poster's hyphen set properly for screen type. */

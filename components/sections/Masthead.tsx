@@ -41,8 +41,8 @@ import { datesLabel, eventConfig, weekdaysLabel } from "@/lib/config";
  *   │                                         │   [ БҮРТГҮҮЛЭХ ] │
  *   └─────────────────────────────────────────┴──────────────────┘
  *
- * The vertical rule between the columns is the page's only divider, and it earns
- * its place: left is the event, right is what you do about it.
+ * The right column is the page's one raised panel: left is the event, right is
+ * what you do about it.
  *
  * A server component apart from the form. The entrance is a CSS animation and
  * nothing here observes scroll, so everything except the controls works before
@@ -77,7 +77,7 @@ export function Masthead() {
   ];
 
   return (
-    <section className="relative isolate px-6 pb-16 sm:px-10 lg:px-14 lg:pb-24">
+    <section className="relative isolate mx-auto max-w-[80rem] px-5 pb-12 sm:px-10 lg:px-14 lg:pb-20">
       {/* ── the standing head ───────────────────────────────────────────────
           The wordmark, the credit set as real letterspaced type, and the edition
           number as a reference mark. One hairline under it, and no navigation:
@@ -111,9 +111,9 @@ export function Masthead() {
       </header>
 
       {/* ── the two columns ─────────────────────────────────────────────── */}
-      <div className="grid items-start gap-y-12 lg:grid-cols-[1fr_auto] lg:gap-x-16 xl:gap-x-24">
+      <div className="grid items-start gap-y-10 lg:grid-cols-[minmax(0,1fr)_25rem] lg:gap-x-14 xl:grid-cols-[minmax(0,1fr)_27rem] xl:gap-x-20">
         {/* ── left: what it is ─────────────────────────────────────────── */}
-        <div className="pt-10 lg:pt-16">
+        <div className="pt-9 lg:pt-14">
           {/*
            * The campaign identity. `h1` wraps the artwork and carries the full
            * name as its accessible text, so the page has a real heading without
@@ -126,12 +126,12 @@ export function Masthead() {
               width={lockup.width}
               height={lockup.height}
               priority
-              sizes="(min-width: 1280px) 576px, (min-width: 1024px) 46vw, (min-width: 640px) 74vw, 88vw"
-              className="h-auto w-[min(88vw,28rem)] lg:w-[min(46vw,36rem)]"
+              sizes="(min-width: 1360px) 544px, (min-width: 1024px) 40vw, (min-width: 480px) 416px, 86vw"
+              className="h-auto w-[min(86vw,26rem)] lg:w-[min(40vw,34rem)]"
             />
           </h1>
 
-          <div style={rise(BEAT.venue)} className="rise mt-[clamp(2.5rem,6vw,3.75rem)]">
+          <div style={rise(BEAT.venue)} className="rise mt-[clamp(2rem,5vw,3.5rem)]">
             <h2 className="display text-bone">{venue.landmark}</h2>
             <p className="mt-3 font-display text-[1.0625rem] font-normal tracking-[0.08em] text-slate sm:text-lg">
               {venue.approach}
@@ -173,7 +173,7 @@ export function Masthead() {
               three stacked lines. */}
           <dl
             style={rise(BEAT.facts)}
-            className="rise mt-[clamp(2.5rem,5vw,3.5rem)] max-w-md border-t border-rule"
+            className="rise mt-[clamp(2rem,4.5vw,3.25rem)] max-w-lg border-t border-rule"
           >
             {facts.map((fact) => (
               <div
@@ -201,13 +201,15 @@ export function Masthead() {
         </div>
 
         {/* ── right: what you do about it ──────────────────────────────────
-            A fixed 22rem measure from `lg` up — wide enough for a comfortable
-            17px field and a two-up set of plates, narrow enough that it reads as
-            a form rather than as a second column of content. */}
+            The page's one raised surface. A fixed 25–27rem column from `lg` up —
+            wide enough for the five times to sit in one row, narrow enough to
+            read as a form rather than a second column of content. The panel is
+            what holds the right side of the composition, so the old vertical
+            rule is gone: the surface itself says "this is where you act". */}
         <div
           id="registration"
           style={rise(BEAT.form)}
-          className="rise w-full scroll-mt-8 lg:w-[22rem] lg:border-l lg:border-rule lg:pl-16 lg:pt-16 xl:pl-24"
+          className="rise w-full scroll-mt-4 rounded-md border border-rule bg-panel px-5 py-7 sm:px-8 sm:py-9 lg:mt-14 xl:px-10 xl:py-10"
         >
           <RegistrationForm headingId="registration-title" />
         </div>

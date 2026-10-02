@@ -21,7 +21,19 @@ interface ChoiceGroupProps {
   value: string;
   onChange: (value: string) => void;
   error?: string | undefined;
+  /**
+   * `pair` — two-up plates with the label at the left, for options that carry
+   * a second line (the days). `row` — a single row of centred figures from
+   * `sm` up, for a short sequence (the times); on a phone it falls back to
+   * two-up, and an odd last plate takes the whole row rather than leaving a hole.
+   */
+  layout?: "pair" | "row";
 }
+
+const GRID = {
+  pair: "grid-cols-2",
+  row: "grid-cols-2 sm:grid-flow-col sm:auto-cols-fr sm:grid-cols-none",
+} as const;
 
 /**
  * A set of plates, one of which is chosen.
@@ -36,16 +48,24 @@ interface ChoiceGroupProps {
  * a tab stop, and each is a `button` with `role="radio"` rather than a styled
  * `<input>` so a plate can carry two lines of type.
  *
- * Selection fills with **bone** — the ground's opposite — not with red. Red on
- * this page means "this button submits", and a chosen time is not that. Filling
- * with the strongest available contrast also means the selected state carries
- * without a tick, and `aria-checked` carries it for anyone not seeing the fill,
- * so colour is never the only signal.
+ * Selection takes the campaign red as a border and a faint tint of it, with the
+ * type brightened to full bone. A chosen plate has to be unmistakable at a
+ * glance on a phone, and red is the one colour this page reserves for "yours".
+ * The change is carried by border, fill and type weight together, and
+ * `aria-checked` carries it for anyone not seeing colour, so colour is never the
+ * only signal.
  *
  * 56px minimum on every plate: the brief's touch floor, and enough for the two
  * lines the day options carry.
  */
-export function ChoiceGroup({ label, options, value, onChange, error }: ChoiceGroupProps) {
+export function ChoiceGroup({
+  label,
+  options,
+  value,
+  onChange,
+  error,
+  layout = "pair",
+}: ChoiceGroupProps) {
   const rawId = useId();
   const labelId = `${rawId}-label`;
   const errorId = `${rawId}-error`;
@@ -83,7 +103,7 @@ export function ChoiceGroup({ label, options, value, onChange, error }: ChoiceGr
         aria-labelledby={labelId}
         aria-describedby={error ? errorId : undefined}
         onKeyDown={handleKeyDown}
-        className="mt-3 grid grid-cols-2 gap-2.5"
+        className={`mt-2.5 grid gap-2 ${GRID[layout]}`}
       >
         {options.map((option, index) => {
           const selected = option.value === value;
@@ -103,12 +123,15 @@ export function ChoiceGroup({ label, options, value, onChange, error }: ChoiceGr
               className={[
                 /* 4px radius and a hairline, matching the button and the rules —
                    this page has no rounded cards for a control to imitate. */
-                "flex min-h-14 flex-col items-start justify-center gap-1 rounded border px-4 py-3 text-left",
-                "transition-[background-color,border-color,color] duration-200 ease-enter",
+                "flex min-h-14 flex-col justify-center gap-1.5 rounded border py-3",
+                layout === "row"
+                  ? "items-center px-2 text-center max-sm:odd:last:col-span-2"
+                  : "items-start px-4 text-left",
+                "transition-[background-color,border-color,color,scale] duration-200 ease-enter active:scale-[0.98]",
                 "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber",
                 selected
-                  ? "border-bone bg-bone text-midnight"
-                  : "border-rule text-bone hover:border-rule-lit hover:bg-bone/[0.05]",
+                  ? "border-signal bg-signal/20 text-white shadow-[inset_0_0_0_1px_var(--color-signal)]"
+                  : "border-rule-lit bg-well text-bone/85 hover:border-bone/45 hover:text-bone",
               ].join(" ")}
             >
               <span
@@ -121,7 +144,7 @@ export function ChoiceGroup({ label, options, value, onChange, error }: ChoiceGr
                 <span
                   className={[
                     "text-[0.75rem] leading-none",
-                    selected ? "text-midnight/60" : "text-slate",
+                    selected ? "text-bone/80" : "text-slate",
                   ].join(" ")}
                 >
                   {option.secondary}

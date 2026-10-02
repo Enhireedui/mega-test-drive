@@ -22,8 +22,8 @@ export function SiteFooter() {
   const { presenter } = eventConfig;
 
   return (
-    <footer className="px-6 pb-[calc(6.5rem+env(safe-area-inset-bottom))] pt-10 sm:px-10 lg:px-14 lg:pb-16">
-      <div className="flex items-center gap-5 sm:gap-6">
+    <footer className="mx-auto max-w-[80rem] px-5 pb-[calc(6.5rem+env(safe-area-inset-bottom))] sm:px-10 lg:px-14 lg:pb-14">
+      <div className="flex items-center gap-5 border-t border-rule pt-8 sm:gap-6">
         <Image
           src={presenter.logo}
           alt={presenter.name}

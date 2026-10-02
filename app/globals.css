@@ -38,6 +38,10 @@
      page, so there is nothing for a second shade to be. Indigo-black, from the
      poster's night sky rather than a neutral #0A0A0A. */
   --color-midnight: #090d1c;
+  /* The one raised surface: the registration panel. A step up the same night
+     sky, not a grey — so the form reads as the place to act without turning
+     into a card kit. */
+  --color-panel: #0e1427;
 
   /* --- Ink -------------------------------------------------------------
      `bone` is the poster's brightest quartile (#f2edec), pulled just off white
@@ -68,6 +72,8 @@
   /* --- Edges ----------------------------------------------------------- */
   --color-rule: rgb(233 231 236 / 0.14);
   --color-rule-lit: rgb(233 231 236 / 0.3);
+  /* Field and plate fill: barely lifted, so a control reads as touchable. */
+  --color-well: rgb(233 231 236 / 0.035);
 
   /* --- Type ------------------------------------------------------------- */
   --font-display: "Oswald", "Arial Narrow", ui-sans-serif, system-ui, sans-serif;
@@ -139,10 +145,9 @@
   input:-webkit-autofill:hover,
   input:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--color-bone);
-    /* The ground itself, not a lifted shade: the fields are ruled lines with no
-       fill, so any other value paints a visible rectangle behind an autofilled
-       value that was not there a moment before. */
-    -webkit-box-shadow: 0 0 0 1000px var(--color-midnight) inset;
+    /* The panel the fields sit on, so an autofilled value does not paint a
+       rectangle of a different shade inside its box. */
+    -webkit-box-shadow: 0 0 0 1000px color-mix(in srgb, var(--color-bone) 3.5%, var(--color-panel)) inset;
     caret-color: var(--color-amber);
     transition: background-color 9999s ease-out 0s;
   }

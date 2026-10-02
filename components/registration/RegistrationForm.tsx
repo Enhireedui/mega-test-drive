@@ -87,6 +87,33 @@ function Confirmation({
 }
 
 /**
+ * The choice read back, just above the button.
+ *
+ * Reassurance, not a step: it states what the button is about to send, from the
+ * form's own state, so nobody submits wondering whether the tap on 18:00 landed.
+ * Until both are chosen it says what is still missing rather than sitting empty.
+ */
+function SelectionSummary({ visitDate, visitTime }: { visitDate: string; visitTime: string }) {
+  const day = eventConfig.days.find((item) => item.id === visitDate);
+  const chosen = [day ? `${day.label} · ${day.weekday}` : "", visitTime].filter(Boolean).join(" · ");
+  const missing = !day && !visitTime ? "Өдөр, цагаа сонгоно уу" : !day ? "Өдрөө сонгоно уу" : "Цагаа сонгоно уу";
+
+  return (
+    <div className="mt-2 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1.5 border-t border-rule pt-4">
+      <p className="ref shrink-0 text-slate">Таны сонголт</p>
+      <p className="flex flex-wrap items-baseline justify-end gap-x-3 text-right">
+        {chosen ? (
+          <span className="whitespace-nowrap font-display text-[1.0625rem] tracking-[0.02em] text-bone" data-numeric="">
+            {chosen}
+          </span>
+        ) : null}
+        {day && visitTime ? null : <span className="text-[0.8125rem] text-slate">{missing}</span>}
+      </p>
+    </div>
+  );
+}
+
+/**
  * Day, time, name, number, send.
  *
  * Four questions, one button, no steps. The two choices come first and the two
@@ -230,7 +257,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
               between validation and the write. */}
           <fieldset
             disabled={isSubmitting}
-            className="mt-8 min-w-0 space-y-6 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-50"
+            className="mt-6 min-w-0 space-y-3 border-0 p-0 transition-opacity duration-300 ease-enter disabled:opacity-50"
           >
             <ChoiceGroup
               label="Өдөр"
@@ -255,6 +282,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
               value={visitTime}
               onChange={choose("visitTime")}
               error={errors.visitTime?.message}
+              layout="row"
             />
 
             <TextField
@@ -286,10 +314,12 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
             />
           </fieldset>
 
+          <SelectionSummary visitDate={visitDate} visitTime={visitTime} />
+
           {submissionError ? (
             <p
               role="alert"
-              className="mt-6 border-l-2 border-signal pl-4 text-[0.875rem] leading-relaxed text-bone"
+              className="mt-5 border-l-2 border-signal pl-4 text-[0.875rem] leading-relaxed text-bone"
             >
               {submissionError}
             </p>
@@ -300,7 +330,7 @@ export function RegistrationForm({ headingId }: { headingId: string }) {
             fullWidth
             loading={isSubmitting}
             loadingLabel="Илгээж байна"
-            className="mt-8"
+            className="mt-5"
           >
             Бүртгүүлэх
           </ActionButton>

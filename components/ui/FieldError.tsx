@@ -20,7 +20,7 @@ interface FieldErrorProps {
  */
 export function FieldError({ id, message }: FieldErrorProps) {
   return (
-    <div className="min-h-6 pt-2.5">
+    <div className="min-h-7 pt-1.5">
       <p
         id={id}
         /* `alert` only while it says something — an empty live region announced

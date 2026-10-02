@@ -182,14 +182,14 @@ async function buildLockup() {
 async function buildSocialCard() {
   const file = src("posterSquare");
   const { width, height } = await sharp(file, OPEN).metadata();
-  log(`  ${SOURCES.posterSquare}  ${width}×${height}  →  poster.jpg 1200px`);
+  log(`  ${SOURCES.posterSquare}  ${width}×${height}  →  darhan-mega-test-drive-8.jpg 1200px`);
   if (ANALYZE) return;
 
   await ensureDir(path.join(PUBLIC_DIR, "event"));
   await sharp(file, OPEN)
     .resize({ width: 1200, withoutEnlargement: true })
-    .jpeg({ quality: 82, mozjpeg: true })
-    .toFile(path.join(PUBLIC_DIR, "event", "poster.jpg"));
+    .jpeg({ quality: 86, mozjpeg: true })
+    .toFile(path.join(PUBLIC_DIR, "event", "darhan-mega-test-drive-8.jpg"));
 }
 
 /* ── entry ───────────────────────────────────────────────────────────────── */
