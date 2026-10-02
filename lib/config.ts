@@ -13,8 +13,8 @@ import type { EventConfig } from "@/types/event";
  * Its header reads "АЛБАН ЁСНЫ ДИСТРИБЬЮТЕР / SAIN MOTORS"; its foot reads,
  * left to right:
  *
- *     2026.10.01, 02      Дархан хот                       10:00 - 19:00
- *     Пүрэв, Баасан гараг Дархан Плазагаас шинэ Дархан      цагийн хооронд
+ *     2026.10.09, 10      Дархан хот                       10:00 - 19:00
+ *     Баасан, Бямба гараг Дархан Плазагаас шинэ Дархан      цагийн хооронд
  *                         явах замд
  *
  *
@@ -70,14 +70,14 @@ export const eventConfig: EventConfig = {
   poster: { src: "/event/poster.jpg", width: 1200, height: 1200 },
 
   /*
-   * Two days. The poster sets them as one line — "2026.10.01, 02" over
-   * "Пүрэв, Баасан гараг" — and the form asks which one, because an organiser
+   * Two days. The poster sets them as one line — "2026.10.09, 10" over
+   * "Баасан, Бямба гараг" — and the form asks which one, because an organiser
    * running a fleet on two separate days cannot staff them from a list of times
    * alone.
    */
   days: [
-    { id: "10.01", label: "10.01", weekday: "Пүрэв", iso: "2026-10-01" },
-    { id: "10.02", label: "10.02", weekday: "Баасан", iso: "2026-10-02" },
+    { id: "10.09", label: "10.09", weekday: "Баасан", iso: "2026-10-09" },
+    { id: "10.10", label: "10.10", weekday: "Бямба", iso: "2026-10-10" },
   ],
 
   /*
@@ -128,10 +128,10 @@ export function venueLabel(): string {
 }
 
 /**
- * "2026.10.01, 02" — both days, set the way the poster sets them.
+ * "2026.10.09, 10" — both days, set the way the poster sets them.
  *
  * The year and the month are stated once and the second day carries only its
- * own number. Repeating the month ("10.01, 10.02") is what a machine would
+ * own number. Repeating the month ("10.09, 10.10") is what a machine would
  * write; the poster's form is shorter, unambiguous in context, and already the
  * way the campaign has been published everywhere else.
  */
@@ -143,10 +143,10 @@ export function datesLabel(): string {
 }
 
 /**
- * "Пүрэв, Баасан" — the weekdays alone.
+ * "Баасан, Бямба" — the weekdays alone.
  *
  * Without the trailing "гараг" the poster prints, because on the page this value
- * sits against a label that already says ГАРАГ, and "Гараг: Пүрэв, Баасан гараг"
+ * sits against a label that already says ГАРАГ, and "Гараг: Баасан, Бямба гараг"
  * says the word twice in one row.
  */
 export function weekdaysLabel(): string {
@@ -194,7 +194,7 @@ export function slotChoices(): readonly string[] {
  * What gets written to the sheet's day column.
  *
  * Spelled out rather than sent as a bare id: the organiser reads this column to
- * staff two separate days, and "10.01" alone does not say which weekday that is
+ * staff two separate days, and "10.09" alone does not say which weekday that is
  * at a glance.
  */
 export function dayLabel(choice: string): string {

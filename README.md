@@ -1,7 +1,7 @@
 # MEGA EVENT TEST DRIVE 8 — ДАРХАН ХОТ
 
 A one-page registration site for SAIN MOTORS' eighth MEGA EVENT TEST DRIVE:
-two days in Darkhan, 2026.10.01 and 10.02, 10:00–19:00.
+two days in Darkhan, 2026.10.09 and 10.10, 10:00–19:00.
 
 The page states the event and takes a registration. There is nothing else on it
 — no navigation, no FAQ, no benefits section, no photographic band, and no
@@ -47,7 +47,7 @@ check only ever reads the tab it writes to.
 ```bash
 curl -s -X POST "$GOOGLE_SHEETS_WEBHOOK_URL" \
   -H 'Content-Type: application/json' \
-  -d '{"timestamp":"2026-10-01T02:00:00.000Z","fullName":"ТЕСТ Бүртгэл","phone":"99000000","visitDate":"10.01 (Пүрэв)","visitTime":"12:00","event":"MEGA TEST DRIVE 8"}'
+  -d '{"timestamp":"2026-10-09T02:00:00.000Z","fullName":"ТЕСТ Бүртгэл","phone":"99000000","visitDate":"10.09 (Баасан)","visitTime":"12:00","event":"MEGA TEST DRIVE 8"}'
 ```
 
 `{"ok":true}` means it is live. Delete that row from the tab afterwards.
@@ -273,7 +273,7 @@ The webhook URL is server-only and never prefixed with `NEXT_PUBLIC_`.
 | G Холбогдсон, H Ирсэн эсэх, I Тэмдэглэл | your team — never touched |
 
 Values are written with a leading apostrophe so Sheets cannot reinterpret
-`10.01` as a date or `12:00` as a duration, and the name regex accepts only
+`10.09` as a date or `12:00` as a duration, and the name regex accepts only
 letters, marks, spaces, apostrophes, dots and hyphens — which also means a value
 can never begin with `=`, `+` or `@`.
 

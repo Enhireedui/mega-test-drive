@@ -19,11 +19,11 @@
 
 /** One of the days the fleet is out. */
 export interface EventDay {
-  /** Stable id, and the value written to the sheet (e.g. "10.01"). */
+  /** Stable id, and the value written to the sheet (e.g. "10.09"). */
   readonly id: string;
-  /** Display label, exactly as the poster sets it (e.g. "10.01"). */
+  /** Display label, exactly as the poster sets it (e.g. "10.09"). */
   readonly label: string;
-  /** Mongolian weekday as the poster writes it (e.g. "Пүрэв"). */
+  /** Mongolian weekday as the poster writes it (e.g. "Баасан"). */
   readonly weekday: string;
   /** ISO calendar date, for timestamps and structured data. */
   readonly iso: string;

@@ -25,7 +25,7 @@ function EventStructuredData() {
    * Only claims the poster makes or this app enforces.
    *
    * One `Event` spanning both days rather than two: it is one campaign running
-   * 10.01–10.02, which is exactly what a start date and an end date describe.
+   * 10.09–10.10, which is exactly what a start date and an end date describe.
    *
    * No `offers` block: nothing has told us what admission costs, and asserting a
    * price of zero in machine-readable form — where a search engine can surface it

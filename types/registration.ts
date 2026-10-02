@@ -16,7 +16,7 @@
 export interface RegistrationFormValues {
   fullName: string;
   phone: string;
-  /** A day id from lib/config.ts (e.g. "10.01"). */
+  /** A day id from lib/config.ts (e.g. "10.09"). */
   visitDate: string;
   /** A slot id from lib/config.ts (e.g. "12:00"). */
   visitTime: string;

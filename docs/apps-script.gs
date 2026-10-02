@@ -15,7 +15,7 @@
  *
  * Why the fields moved: edition 7 ran one day at a mountain pass with a coach on
  * a timetable, so "which coach" was the one genuine per-person answer. Edition 8
- * runs 2026.10.01 and 10.02 in Darkhan with no coach laid on, so the question
+ * runs 2026.10.09 and 10.10 in Darkhan with no coach laid on, so the question
  * became "which day, and when" — two answers that are real data on every row.
  *
  * `event` is the one constant written per row. It is redundant while this tab
@@ -209,7 +209,7 @@ function doPost(event) {
     /* Leading apostrophe keeps Sheets from eating a leading zero or reading the
        number as a float. */
     row[COLUMN_PHONE - 1] = "'" + phone;
-    /* Leading apostrophe again: "10.01" and "12:00" are both shapes Sheets will
+    /* Leading apostrophe again: "10.09" and "12:00" are both shapes Sheets will
        happily reinterpret as a date or a duration in some locales. */
     row[COLUMN_VISIT_DATE - 1] = "'" + visitDate;
     row[COLUMN_VISIT_TIME - 1] = "'" + visitTime;
